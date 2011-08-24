@@ -7,6 +7,8 @@ Beaker package, for simple and generic usage.
 
 Usage::
 
+    from dogpile import Dogpile
+
     # store a reference to a "resource", some 
     # object that is expensive to create.
     the_resource = [None]
@@ -30,16 +32,16 @@ Usage::
         use_the_resource()
 
 Above, ``some_creation_function()`` will be called
-when :meth:`.Dogpile.acquire` is first called.  The 
+when ``Dogpile.acquire()`` is first called.  The 
 block then proceeds.   Concurrent threads which 
-call :meth:`.Dogpile.acquire` during this initial period
+call ``Dogpile.acquire()`` during this initial period
 will block until ``some_creation_function()`` completes.
 
 Once the creation function has completed successfully,
-new calls to :meth:`.Dogpile.acquire` will route a single
+new calls to ``Dogpile.acquire()`` will route a single
 thread into new calls of ``some_creation_function()`` 
 each time the expiration time is reached.  Concurrent threads
-which call :meth:`.Dogpile.acquire` during this period will
+which call ``Dogpile.acquire()`` during this period will
 fall through, and not be blocked.  It is expected that
 the "stale" version of the resource remain available at this
 time while the new one is generated.
@@ -51,12 +53,12 @@ The example of this is when the creation function has prepared a new
 datafile to replace the old one, and would like to switch in the
 "new" file only when other threads have finished using it.   
 
-To enable this feature, use :class:`.SyncReaderDogpile`.
-Then use :meth:`.SyncReaderDogpile.acquire_write_lock` for the critical section
+To enable this feature, use `SyncReaderDogpile``.
+Then use ``SyncReaderDogpile.acquire_write_lock()`` for the critical section
 where readers should be blocked::
-    
+
     from dogpile import SyncReaderDogpile
-    
+
     dogpile = SyncReaderDogpile(3600)
 
     def some_creation_function():
