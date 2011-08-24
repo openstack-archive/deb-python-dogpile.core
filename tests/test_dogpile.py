@@ -45,6 +45,9 @@ class DogpileTest(TestCase):
             if slow_write_time:
                 with dogpile.acquire_write_lock():
                     saved = list(the_resource)
+                    # clear out the resource dict so that
+                    # usage threads hitting it will
+                    # raise
                     the_resource[:] = []
                     time.sleep(slow_write_time)
                     the_resource[:] = saved
@@ -70,11 +73,10 @@ class DogpileTest(TestCase):
                     # establish "max stale" as, object expired + time 
                     # to create a new one + 10%
                     max_stale = (expiretime + creation_time) * 1.1
-
-                    assert time_since_create < max_stale
-                    "Value is %f seconds old, expiretime %f, time to create %f" % (
-                        time_since_create, expiretime, creation_time
-                    )
+                    assert time_since_create < max_stale, \
+                        "Value is %f seconds old, expiretime %f, time to create %f" % (
+                            time_since_create, expiretime, creation_time
+                        )
                     log.debug("time since create %s max stale time %s" % (
                         time_since_create,
                         max_stale

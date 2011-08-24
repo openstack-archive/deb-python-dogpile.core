@@ -117,20 +117,16 @@ class Dogpile(object):
         if not self.is_expired:
             return
 
-        has_createlock = False
         if self.has_value:
             if not self.dogpilelock.acquire(False):
                 log.debug("dogpile entering block while another thread does the create")
                 return
-            log.debug("dogpile create lock acquired")
-            has_createlock = True
-
-        if not has_createlock:
+        else:
             log.debug("no value, waiting for create lock")
             self.dogpilelock.acquire()
-            log.debug("waited for create lock")
-
         try:
+            log.debug("value creation lock acquired")
+
             # see if someone created the value already
             if not self.is_expired:
                 return
