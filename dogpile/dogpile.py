@@ -76,12 +76,23 @@ from readwrite_lock import ReadWriteMutex
 log = logging.getLogger(__name__)
 
 class Dogpile(object):
+    """Dogpile class.   
+    
+    :param expiretime: Expiration time in seconds.
+    
+    """
     def __init__(self, expiretime):
         self.dogpilelock = threading.Lock()
         self.expiretime = expiretime
         self.createdtime = -1
 
     def acquire(self, creator):
+        """Acquire the lock, returning a context manager.
+        
+        :param creator: Creation function, used if this thread
+         is chosen to create a new value.
+         
+        """
         dogpile = self
         class Lock(object):
             def __enter__(self):
@@ -92,11 +103,13 @@ class Dogpile(object):
 
     @property
     def is_expired(self):
+        """Return true if the expiration time is reached."""
         return not self.has_value or \
             time.time() - self.createdtime > self.expiretime
 
     @property
     def has_value(self):
+        """Return true if the creation function has proceeded at least once."""
         return self.createdtime > 0
 
     def _enter(self, creator):

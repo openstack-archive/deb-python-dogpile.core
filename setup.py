@@ -31,6 +31,6 @@ setup(name='Dogpile',
       zip_safe=False,
       install_requires=[],
       test_suite='nose.collector',
-      tests_require=tests_require,
+      tests_require=['nose'],
       **extra
 )

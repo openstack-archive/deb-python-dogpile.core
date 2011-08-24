@@ -1,7 +1,6 @@
 from unittest import TestCase
 import time
 import threading
-import thread
 from dogpile import Dogpile, SyncReaderDogpile
 
 import logging
@@ -41,7 +40,7 @@ class DogpileTest(TestCase):
 
         the_resource = []
         def create_resource():
-            log.debug("%s creating resource..." % thread.get_ident())
+            log.debug("creating resource...")
             time.sleep(creation_time)
             if slow_write_time:
                 with dogpile.acquire_write_lock():
@@ -76,8 +75,7 @@ class DogpileTest(TestCase):
                     "Value is %f seconds old, expiretime %f, time to create %f" % (
                         time_since_create, expiretime, creation_time
                     )
-                    log.debug("%s time since create %s max stale time %s" % (
-                        thread.get_ident(),
+                    log.debug("time since create %s max stale time %s" % (
                         time_since_create,
                         max_stale
                     ))
