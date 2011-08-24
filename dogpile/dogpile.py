@@ -103,7 +103,8 @@ class Dogpile(object):
 
     @property
     def is_expired(self):
-        """Return true if the expiration time is reached."""
+        """Return true if the expiration time is reached, or no value is available."""
+
         return not self.has_value or \
             time.time() - self.createdtime > self.expiretime
 
@@ -113,9 +114,8 @@ class Dogpile(object):
         return self.createdtime > 0
 
     def _enter(self, creator):
-        if self.has_value:
-            if not self.is_expired:
-                return
+        if not self.is_expired:
+            return
 
         has_createlock = False
         if self.has_value:
@@ -132,9 +132,8 @@ class Dogpile(object):
 
         try:
             # see if someone created the value already
-            if self.has_value:
-                if not self.is_expired:
-                    return
+            if not self.is_expired:
+                return
 
             log.debug("Calling creation function")
             creator()
