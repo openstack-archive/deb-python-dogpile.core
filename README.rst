@@ -33,14 +33,14 @@ Usage::
 
 Above, ``some_creation_function()`` will be called
 when ``Dogpile.acquire()`` is first called.  The 
-block then proceeds.   Concurrent threads which 
+remainder of the ``with`` block then proceeds.   Concurrent threads which 
 call ``Dogpile.acquire()`` during this initial period
-will block until ``some_creation_function()`` completes.
+will be blocked until ``some_creation_function()`` completes.
 
-Once the creation function has completed successfully,
-new calls to ``Dogpile.acquire()`` will route a single
-thread into new calls of ``some_creation_function()`` 
-each time the expiration time is reached.  Concurrent threads
+Once the creation function has completed successfully the first time,
+new calls to ``Dogpile.acquire()`` will call ``some_creation_function()`` 
+each time the "expiretime" has been reached, allowing only a single
+thread to call the function.  Concurrent threads
 which call ``Dogpile.acquire()`` during this period will
 fall through, and not be blocked.  It is expected that
 the "stale" version of the resource remain available at this
@@ -53,9 +53,9 @@ The example of this is when the creation function has prepared a new
 datafile to replace the old one, and would like to switch in the
 "new" file only when other threads have finished using it.   
 
-To enable this feature, use `SyncReaderDogpile``.
-Then use ``SyncReaderDogpile.acquire_write_lock()`` for the critical section
-where readers should be blocked::
+To enable this feature, use ``SyncReaderDogpile()``.
+``SyncReaderDogpile.acquire_write_lock()`` then provides a safe-write lock
+for the critical section where readers should be blocked::
 
     from dogpile import SyncReaderDogpile
 
