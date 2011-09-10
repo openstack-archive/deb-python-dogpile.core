@@ -153,7 +153,7 @@ Memcached::
 
         def gen_cached():
             value = my_expensive_database.load_the_value()
-             with mc_pool.reserve() as mc:
+            with mc_pool.reserve() as mc:
                 mc.put(key, value)
 
         dogpile = Dogpile(expiration_time, init=True)
@@ -184,8 +184,8 @@ Development Status
 -------------------
 
 Please note Dogpile is new and has only had minimal production usage !   Comments
-and improvements are welcome but please review its workings and source code before use
-and use at your own risk !
+and improvements are welcome.  Since this is concurrency-oriented code, please review
+the source and let me know about potential issues.   As always, **use at your own risk!**
 
 
 
