@@ -152,9 +152,10 @@ Memcached::
                 return value
 
         def gen_cached():
-            value = my_expensive_database.load_the_value()
+            value = fn()
             with mc_pool.reserve() as mc:
                 mc.put(key, value)
+            return value
 
         dogpile = Dogpile(expiration_time, init=True)
 
