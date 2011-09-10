@@ -180,5 +180,13 @@ In particular, Dogpile's system allows us to call the memcached get() function a
 once per access, instead of Beaker's system which calls it twice, and doesn't make us call
 get() when we just created the value.
 
+Development Status
+-------------------
+
+Please note Dogpile is new and has only had minimal production usage !   Comments
+and improvements are welcome but please review its workings and source code before use
+and use at your own risk !
+
+
 
 

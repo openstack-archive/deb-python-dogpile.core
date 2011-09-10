@@ -16,7 +16,7 @@ setup(name='Dogpile',
       description="A 'Dogpile' lock, typically used as a component of a larger caching solution",
       long_description=file(readme).read(),
       classifiers=[
-      'Development Status :: 4 - Beta',
+      'Development Status :: 3 - Alpha',
       'Intended Audience :: Developers',
       'License :: OSI Approved :: BSD License',
       'Programming Language :: Python',
