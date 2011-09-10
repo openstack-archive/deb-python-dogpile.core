@@ -1,1 +1,1 @@
-from dogpile import Dogpile, SyncReaderDogpile
+from dogpile import Dogpile, SyncReaderDogpile, NeedRegenerationException

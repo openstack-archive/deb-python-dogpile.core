@@ -75,18 +75,30 @@ from readwrite_lock import ReadWriteMutex
 
 log = logging.getLogger(__name__)
 
+
+class NeedRegenerationException(Exception):
+    """An exception that when raised in the 'with' block, forces
+    the 'has_value' flag to False and incurs a regeneration of the value.
+    
+    """
+
+NOT_REGENERATED = object()
+
 class Dogpile(object):
     """Dogpile class.   
     
     :param expiretime: Expiration time in seconds.
     
     """
-    def __init__(self, expiretime):
+    def __init__(self, expiretime, init=False):
         self.dogpilelock = threading.Lock()
         self.expiretime = expiretime
-        self.createdtime = -1
+        if init:
+            self.createdtime = time.time()
+        else:
+            self.createdtime = -1
 
-    def acquire(self, creator):
+    def acquire(self, creator, value_fn=None):
         """Acquire the lock, returning a context manager.
         
         :param creator: Creation function, used if this thread
@@ -95,8 +107,31 @@ class Dogpile(object):
         """
         dogpile = self
         class Lock(object):
-            def __enter__(self):
-                dogpile._enter(creator)
+            if value_fn:
+                def __enter__(self):
+                    try:
+                        value = value_fn()
+                    except NeedRegenerationException:
+                        dogpile.createdtime = -1
+                        value = NOT_REGENERATED
+
+                    generated = dogpile._enter(creator)
+
+                    if generated is not NOT_REGENERATED:
+                        return generated
+                    elif value is NOT_REGENERATED:
+                        try:
+                            return value_fn()
+                        except NeedRegenerationException:
+                            raise Exception("Generation function should "
+                                        "have just been called by a concurrent "
+                                        "thread.")
+                    else:
+                        return value
+            else:
+                def __enter__(self):
+                    return dogpile._enter(creator)
+
             def __exit__(self, type, value, traceback):
                 dogpile._exit()
         return Lock()
@@ -114,13 +149,15 @@ class Dogpile(object):
         return self.createdtime > 0
 
     def _enter(self, creator):
+
         if not self.is_expired:
-            return
+            return NOT_REGENERATED
 
         if self.has_value:
             if not self.dogpilelock.acquire(False):
-                log.debug("dogpile entering block while another thread does the create")
-                return
+                log.debug("dogpile entering block while another "
+                                "thread does the create")
+                return NOT_REGENERATED
         else:
             log.debug("no value, waiting for create lock")
             self.dogpilelock.acquire()
@@ -129,11 +166,12 @@ class Dogpile(object):
 
             # see if someone created the value already
             if not self.is_expired:
-                return
+                return NOT_REGENERATED
 
             log.debug("Calling creation function")
-            creator()
+            created = creator()
             self.createdtime = time.time()
+            return created
         finally:
             self.dogpilelock.release()
             log.debug("Released creation lock")
@@ -157,8 +195,9 @@ class SyncReaderDogpile(Dogpile):
 
 
     def _enter(self, creator):
-        super(SyncReaderDogpile, self)._enter(creator)
+        value = super(SyncReaderDogpile, self)._enter(creator)
         self.readwritelock.acquire_read_lock()
+        return value
 
     def _exit(self):
         self.readwritelock.release_read_lock()
