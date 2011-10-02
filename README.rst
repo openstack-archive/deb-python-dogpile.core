@@ -151,15 +151,15 @@ Memcached::
                     raise NeedRegenerationException()
                 return value
 
-        def gen_cached():
-            value = fn()
-            with mc_pool.reserve() as mc:
-                mc.put(key, value)
-            return value
-
         dogpile = Dogpile(expiration_time, init=True)
 
         def decorate(fn):
+            def gen_cached():
+                value = fn()
+                with mc_pool.reserve() as mc:
+                    mc.put(key, value)
+                return value
+
             def invoke():
                 with dogpile.acquire(gen_cached, get_value) as value:
                     return value
