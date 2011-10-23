@@ -1,4 +1,4 @@
-Dogpile
+dogpile
 ========
 A "dogpile" lock, one which allows a single thread to generate
 an expensive resource while other threads use the "old" value, until the

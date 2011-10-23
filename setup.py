@@ -11,9 +11,9 @@ if sys.version_info >= (3, 0):
 
 readme = os.path.join(os.path.dirname(__file__), 'README.rst')
 
-setup(name='Dogpile',
-      version="0.1.0",
-      description="A 'Dogpile' lock, typically used as a component of a larger caching solution",
+setup(name='dogpile',
+      version="0.2.0",
+      description="A 'dogpile' lock, typically used as a component of a larger caching solution",
       long_description=file(readme).read(),
       classifiers=[
       'Development Status :: 3 - Alpha',
