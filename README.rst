@@ -197,7 +197,7 @@ Here's the memcached example again using that technique::
     import time
 
     def cache(expiration_time)
-        dogpile_registry = Dogpile.registry(expiration_time))
+        dogpile_registry = Dogpile.registry(expiration_time)
 
         def get_or_create(key):
 
@@ -217,7 +217,8 @@ Here's the memcached example again using that technique::
                 with mc_pool.reserve() as mc:
                     # serialize a tuple
                     # (value, createdtime)
-                    mc.put(key, pickle.dumps(value, time.time()))
+                    value = (value, time.time())
+                    mc.put(key, pickle.dumps(value))
                 return value
 
             with dogpile.acquire(gen_cached, value_and_created_fn=get_value) as value:
@@ -227,14 +228,18 @@ Here's the memcached example again using that technique::
 
 Above, we use ``Dogpile.registry()`` to create a name-based "registry" of ``Dogpile``
 objects.  This object will provide to us a ``Dogpile`` object that's 
-unique on a certain name.   When all usages of that name are complete, the ``Dogpile``
-object falls out of scope, so total number of keys used is not a memory issue.
-Then, tell Dogpile that we'll give it the "creation time" that we'll store in our
+unique on a certain name (or any hashable object) when we call the ``get()`` method.  
+When all usages of that name are complete, the ``Dogpile``
+object falls out of scope.   This way, an application can handle millions of keys
+without needing to have millions of ``Dogpile`` objects persistently resident in memory.
+
+The next part of the approach here is that we'll tell Dogpile that we'll give it 
+the "creation time" that we'll store in our
 cache - we do this using the ``value_and_created_fn`` argument, which assumes we'll
 be storing and loading the value as a tuple of (value, createdtime).  The creation time
 should always be calculated via ``time.time()``.   The ``acquire()`` function
-returns just the first part of the tuple, the value, to us, and uses the 
-createdtime portion to determine if the value is expired.
+returns the "value" portion of the tuple to us and uses the 
+"createdtime" portion to determine if the value is expired.
 
 
 Development Status
