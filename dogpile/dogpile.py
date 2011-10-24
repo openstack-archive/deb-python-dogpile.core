@@ -62,13 +62,7 @@ where readers should be blocked::
             replace_old_datafile_with_new()
 
 """
-try:
-    import threading
-    import thread
-except ImportError:
-    import dummy_threading as threading
-    import dummy_thread as thread
-
+from util import thread, threading
 import time
 import logging
 from readwrite_lock import ReadWriteMutex
@@ -92,25 +86,47 @@ class Dogpile(object):
     """
     def __init__(self, expiretime, init=False):
         self.dogpilelock = threading.Lock()
+
         self.expiretime = expiretime
         if init:
             self.createdtime = time.time()
         else:
             self.createdtime = -1
 
-    def acquire(self, creator, value_fn=None):
+    def acquire(self, creator, 
+                        value_fn=None, 
+                        value_and_created_fn=None):
         """Acquire the lock, returning a context manager.
         
         :param creator: Creation function, used if this thread
          is chosen to create a new value.
          
+        :param value_fn: Optional function that returns
+         the value from some datasource.  Will be returned
+         if regeneration is not needed.
+
+        :param value_and_created_fn: Like value_fn, but returns a tuple
+         of (value, createdtime).  The returned createdtime 
+         will replace the "createdtime" value on this dogpile
+         lock.   This option removes the need for the dogpile lock
+         itself to remain persistent across usages; another 
+         dogpile can come along later and pick up where the
+         previous one left off.   Should be used in conjunction
+         with a :class:`.NameRegistry`.
+         
         """
         dogpile = self
+
+        if value_and_created_fn:
+            value_fn = value_and_created_fn
+
         class Lock(object):
             if value_fn:
                 def __enter__(self):
                     try:
                         value = value_fn()
+                        if value_and_created_fn:
+                            value, dogpile.createdtime = value
                     except NeedRegenerationException:
                         dogpile.createdtime = -1
                         value = NOT_REGENERATED
@@ -180,8 +196,8 @@ class Dogpile(object):
         pass
 
 class SyncReaderDogpile(Dogpile):
-    def __init__(self, expiretime):
-        super(SyncReaderDogpile, self).__init__(expiretime)
+    def __init__(self, *args, **kw):
+        super(SyncReaderDogpile, self).__init__(*args, **kw)
         self.readwritelock = ReadWriteMutex()
 
     def acquire_write_lock(self):

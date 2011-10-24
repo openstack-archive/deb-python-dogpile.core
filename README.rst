@@ -181,6 +181,61 @@ In particular, Dogpile's system allows us to call the memcached get() function a
 once per access, instead of Beaker's system which calls it twice, and doesn't make us call
 get() when we just created the value.
 
+Using Dogpile across lots of keys
+----------------------------------
+
+The above patterns all feature the usage of Dogpile as an object held persistently
+for the lifespan of some value.  Two more helpers can allow the dogpile to be created
+as needed and then disposed, while still maintaining that concurrent threads lock.
+Here's the memcached example again using that technique::
+
+    import pylibmc
+    mc_pool = pylibmc.ThreadMappedPool(pylibmc.Client("localhost"))
+
+    from dogpile import Dogpile, NeedRegenerationException, NameRegistry
+    import pickle
+    import time
+
+    def cache(expiration_time)
+        dogpile_registry = NameRegistry(lambda identifier: Dogpile(expiration_time))
+
+        def get_or_create(key):
+
+            def get_value():
+                 with mc_pool.reserve() as mc:
+                    value = mc.get(key)
+                    if value is None:
+                        raise NeedRegenerationException()
+                    # deserialize a tuple
+                    # (value, createdtime)
+                    return pickle.loads(value)
+
+            dogpile = dogpile_registry.get(key)
+
+            def gen_cached():
+                value = fn()
+                with mc_pool.reserve() as mc:
+                    # serialize a tuple
+                    # (value, createdtime)
+                    mc.put(key, pickle.dumps(value, time.time()))
+                return value
+
+            with dogpile.acquire(gen_cached, value_and_created_fn=get_value) as value:
+                return value
+
+        return get_or_create
+
+Above, we use a ``NameRegistry`` which will give us a ``Dogpile`` object that's 
+unique on a certain name.   When all usages of that name are complete, the ``Dogpile``
+object falls out of scope, so total number of keys used is not a memory issue.
+Then, tell Dogpile that we'll give it the "creation time" that we'll store in our
+cache - we do this using the ``value_and_created_fn`` argument, which assumes we'll
+be storing and loading the value as a tuple of (value, createdtime).  The creation time
+should always be calculated via ``time.time()``.   The ``acquire()`` function
+returns just the first part of the tuple, the value, to us, and uses the 
+createdtime portion to determine if the value is expired.
+
+
 Development Status
 -------------------
 
