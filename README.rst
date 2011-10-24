@@ -192,12 +192,12 @@ Here's the memcached example again using that technique::
     import pylibmc
     mc_pool = pylibmc.ThreadMappedPool(pylibmc.Client("localhost"))
 
-    from dogpile import Dogpile, NeedRegenerationException, NameRegistry
+    from dogpile import Dogpile, NeedRegenerationException
     import pickle
     import time
 
     def cache(expiration_time)
-        dogpile_registry = NameRegistry(lambda identifier: Dogpile(expiration_time))
+        dogpile_registry = Dogpile.registry(expiration_time))
 
         def get_or_create(key):
 
@@ -225,7 +225,8 @@ Here's the memcached example again using that technique::
 
         return get_or_create
 
-Above, we use a ``NameRegistry`` which will give us a ``Dogpile`` object that's 
+Above, we use ``Dogpile.registry()`` to create a name-based "registry" of ``Dogpile``
+objects.  This object will provide to us a ``Dogpile`` object that's 
 unique on a certain name.   When all usages of that name are complete, the ``Dogpile``
 object falls out of scope, so total number of keys used is not a memory issue.
 Then, tell Dogpile that we'll give it the "creation time" that we'll store in our

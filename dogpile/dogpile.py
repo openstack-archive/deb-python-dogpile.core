@@ -66,6 +66,7 @@ from util import thread, threading
 import time
 import logging
 from readwrite_lock import ReadWriteMutex
+from nameregistry import NameRegistry
 
 log = logging.getLogger(__name__)
 
@@ -92,6 +93,23 @@ class Dogpile(object):
             self.createdtime = time.time()
         else:
             self.createdtime = -1
+
+    @clasmethod
+    def registry(cls, *arg, **kw):
+        """Return a name-based registry of :class:`.Dogpile` objects.
+        
+        The registry is an instance of :class:`.NameRegistry`,
+        and calling its ``get()`` method with an identifying 
+        key (anything hashable) will construct a new :class:`.Dogpile`
+        object, keyed to that key.  Subsequent usages will return
+        the same :class:`.Dogpile` object for as long as the 
+        object remains in scope.
+
+        The given arguments are passed along to the underlying
+        constructor of the :class:`.Dogpile` class.
+
+        """
+        return NameRegistry(lambda identifier: cls(*arg, **kw))
 
     def acquire(self, creator, 
                         value_fn=None, 
