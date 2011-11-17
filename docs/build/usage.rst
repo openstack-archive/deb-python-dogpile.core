@@ -1,5 +1,6 @@
-Introduction
-============
+====================
+Dogpile Usage Guide
+====================
 
 At its core, Dogpile provides a locking interface around a "value creation" function.
 
@@ -18,8 +19,8 @@ Using the core Dogpile APIs described here directly implies you're building your
 resource-usage system outside, or in addition to, the one 
 `dogpile.cache <http://bitbucket.org/zzzeek/dogpile.cache>`_ provides.
 
-Usage
-=====
+Rudimentary Usage
+==================
 
 A simple example::
 
@@ -67,50 +68,8 @@ to synchronize among threads within a process.  This can
 be altered to support any kind of locking as we'll see in a 
 later section.
 
-Locking the "write" phase against the "readers"
-------------------------------------------------
-
-The dogpile lock can provide a mutex to the creation 
-function itself, so that the creation function can perform
-certain tasks only after all "stale reader" threads have finished.
-The example of this is when the creation function has prepared a new
-datafile to replace the old one, and would like to switch in the
-"new" file only when other threads have finished using it.
-
-To enable this feature, use :class:`.SyncReaderDogpile`.
-:meth:`.SyncReaderDogpile.acquire_write_lock` then provides a safe-write lock
-for the critical section where readers should be blocked::
-
-
-    from dogpile import SyncReaderDogpile
-
-    dogpile = SyncReaderDogpile(3600)
-
-    def some_creation_function(dogpile):
-        create_expensive_datafile()
-        with dogpile.acquire_write_lock():
-            replace_old_datafile_with_new()
-
-    # usage:
-    with dogpile.acquire(some_creation_function):
-        read_datafile()
-
-With the above pattern, :class:`.SyncReaderDogpile` will
-allow concurrent readers to read from the current version 
-of the datafile as 
-the ``create_expensive_datafile()`` function proceeds with its
-job of generating the information for a new version.
-When the data is ready to be written,  the 
-:meth:`.SyncReaderDogpile.acquire_write_lock` call will 
-block until all current readers of the datafile have completed
-(that is, they've finished their own :meth:`.Dogpile.acquire` 
-blocks).   The ``some_creation_function()`` function
-then proceeds, as new readers are blocked until
-this function finishes its work of 
-rewriting the datafile.
-
 Using a Value Function with a Cache Backend
--------------------------------------------
+=============================================
 
 The dogpile lock includes a more intricate mode of usage to optimize the
 usage of a cache like Memcached.   The difficulties Dogpile addresses
@@ -164,7 +123,7 @@ a second time directly after ``create_and_cache_value()`` has been called.
 .. _caching_decorator:
 
 Using Dogpile for Caching
---------------------------
+==========================
 
 Dogpile is part of an effort to "break up" the Beaker
 package into smaller, simpler components (which also work better). Here, we
@@ -225,7 +184,7 @@ get() when we just created the value.
 .. _scaling_on_keys:
 
 Scaling Dogpile against Many Keys
-----------------------------------
+===================================
 
 The patterns so far have illustrated how to use a single, persistently held
 :class:`.Dogpile` object which maintains a thread-based lock for the lifespan
@@ -349,7 +308,8 @@ An example usage of the completed function::
     my_data = get_some_value("somekey")
 
 Using a File or Distributed Lock with Dogpile
-----------------------------------------------
+==============================================
+
 
 The final twist on the caching pattern is to fix the issue of the Dogpile mutex
 itself being local to the current process.   When a handful of threads all go 
@@ -402,5 +362,59 @@ first as a quick way to remove any filesystem-unfriendly characters, we then use
 ``/tmp/53def077a4264bd3183d4eb21b1f56f883e1b572.lock``.   Any number of :class:`.Dogpile`
 objects in various processes will now coordinate with each other, using this common 
 filename as the "baton" against which creation of a new value proceeds.
+
+Locking the "write" phase against the "readers"
+================================================
+
+A less prominent feature of Dogpile ported from Beaker is the
+ability to provide a mutex against the actual resource being read
+and created, so that the creation function can perform
+certain tasks only after all reader threads have finished.
+The example of this is when the creation function has prepared a new
+datafile to replace the old one, and would like to switch in the
+new file only when other threads have finished using it.
+
+To enable this feature, use :class:`.SyncReaderDogpile`.
+:meth:`.SyncReaderDogpile.acquire_write_lock` then provides a safe-write lock
+for the critical section where readers should be blocked::
+
+
+    from dogpile import SyncReaderDogpile
+
+    dogpile = SyncReaderDogpile(3600)
+
+    def some_creation_function(dogpile):
+        create_expensive_datafile()
+        with dogpile.acquire_write_lock():
+            replace_old_datafile_with_new()
+
+    # usage:
+    with dogpile.acquire(some_creation_function):
+        read_datafile()
+
+With the above pattern, :class:`.SyncReaderDogpile` will
+allow concurrent readers to read from the current version 
+of the datafile as 
+the ``create_expensive_datafile()`` function proceeds with its
+job of generating the information for a new version.
+When the data is ready to be written,  the 
+:meth:`.SyncReaderDogpile.acquire_write_lock` call will 
+block until all current readers of the datafile have completed
+(that is, they've finished their own :meth:`.Dogpile.acquire` 
+blocks).   The ``some_creation_function()`` function
+then proceeds, as new readers are blocked until
+this function finishes its work of 
+rewriting the datafile.
+
+Note that the :class:`.SyncReaderDogpile` approach is useful
+for when working with a resource that itself does not support concurent
+access while being written, namely flat files, possibly some forms of DBM file.
+It is **not** needed when dealing with a datasource that already
+provides a high level of concurrency, such as a relational database,
+Memcached, or NoSQL store.   Currently, the :class:`.SyncReaderDogpile` object
+only synchronizes within the current process among multiple threads;
+it won't at this time protect from concurrent access by multiple 
+processes.   Beaker did support this behavior however using lock files,
+and this functionality may be re-added in a future release.
 
 
