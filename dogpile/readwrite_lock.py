@@ -4,7 +4,17 @@ except ImportError:
     import dummy_threading as threading
 
 class ReadWriteMutex(object):
-    """A mutex which allows multiple readers, single writer."""
+    """A mutex which allows multiple readers, single writer.
+    
+    :class:`.ReadWriteMutex` uses a Python ``threading.Condition``
+    to provide this functionality across threads within a process.
+    
+    The Beaker package also contained a file-lock based version
+    of this concept, so that readers/writers could be synchronized
+    across processes with a common filesystem.  A future Dogpile 
+    release may include this additional class at some point.
+    
+    """
 
     def __init__(self):
         # counts how many asynchronous methods are executing
@@ -17,6 +27,7 @@ class ReadWriteMutex(object):
         self.condition = threading.Condition(threading.Lock())
 
     def acquire_read_lock(self, wait = True):
+        """Acquire the 'read' lock."""
         self.condition.acquire()
         try:
             # see if a synchronous operation is waiting to start
@@ -37,6 +48,7 @@ class ReadWriteMutex(object):
             return True
 
     def release_read_lock(self):
+        """Release the 'read' lock."""
         self.condition.acquire()
         try:
             self.async -= 1
@@ -55,6 +67,7 @@ class ReadWriteMutex(object):
             self.condition.release()
 
     def acquire_write_lock(self, wait = True):
+        """Acquire the 'write' lock."""
         self.condition.acquire()
         try:
             # here, we are not a synchronous reader, and after returning,
@@ -91,6 +104,7 @@ class ReadWriteMutex(object):
             return True
 
     def release_write_lock(self):
+        """Release the 'write' lock."""
         self.condition.acquire()
         try:
             if self.current_sync_operation is not threading.currentThread():

@@ -1,72 +1,7 @@
-"""A "dogpile" lock, one which allows a single thread to generate
-an expensive resource while other threads use the "old" value, until the
-"new" value is ready.
-
-Usage::
-    
-    # store a reference to a "resource", some 
-    # object that is expensive to create.
-    the_resource = [None]
-
-    def some_creation_function():
-        # create the resource here
-        the_resource[0] = create_some_resource()
-        
-    def use_the_resource():
-        # some function that uses
-        # the resource.  Won't reach
-        # here until some_creation_function()
-        # has completed at least once.
-        the_resource[0].do_something()
-        
-    # create Dogpile with 3600 second
-    # expiry time
-    dogpile = Dogpile(3600)
-
-    with dogpile.acquire(some_creation_function):
-        use_the_resource()
-
-Above, ``some_creation_function()`` will be called
-when :meth:`.Dogpile.acquire` is first called.  The 
-block then proceeds.   Concurrent threads which 
-call :meth:`.Dogpile.acquire` during this initial period
-will block until ``some_creation_function()`` completes.
-
-Once the creation function has completed successfully,
-new calls to :meth:`.Dogpile.acquire` will route a single
-thread into new calls of ``some_creation_function()`` 
-each time the expiration time is reached.  Concurrent threads
-which call :meth:`.Dogpile.acquire` during this period will
-fall through, and not be blocked.  It is expected that
-the "stale" version of the resource remain available at this
-time while the new one is generated.
-
-The dogpile lock can also provide a mutex to the creation 
-function itself, so that the creation function can perform
-certain tasks only after all "stale reader" threads have finished.
-The example of this is when the creation function has prepared a new
-datafile to replace the old one, and would like to switch in the
-"new" file only when other threads have finished using it.   
-
-To enable this feature, use :class:`.SyncReaderDogpile`.
-Then use :meth:`.SyncReaderDogpile.acquire_write_lock` for the critical section
-where readers should be blocked::
-    
-    from dogpile import SyncReaderDogpile
-    
-    dogpile = SyncReaderDogpile(3600)
-
-    def some_creation_function():
-        create_expensive_datafile()
-        with dogpile.acquire_write_lock():
-            replace_old_datafile_with_new()
-
-"""
 from util import thread, threading
 import time
 import logging
 from readwrite_lock import ReadWriteMutex
-from nameregistry import NameRegistry
 
 log = logging.getLogger(__name__)
 
@@ -80,36 +15,41 @@ class NeedRegenerationException(Exception):
 NOT_REGENERATED = object()
 
 class Dogpile(object):
-    """Dogpile class.   
+    """Dogpile lock class.
     
-    :param expiretime: Expiration time in seconds.
+    Provides an interface around an arbitrary mutex that allows one 
+    thread/process to be elected as the creator of a new value, 
+    while other threads/processes continue to return the previous version 
+    of that value.
     
     """
-    def __init__(self, expiretime, init=False):
-        self.dogpilelock = threading.Lock()
+    def __init__(self, expiretime, init=False, lock=None):
+        """Construct a new :class:`.Dogpile`.
+
+        :param expiretime: Expiration time in seconds.
+        :param init: if True, set the 'createdtime' to the
+         current time.
+        :param lock: a mutex object that provides
+         ``acquire()`` and ``release()`` methods.
+        
+        """
+        if lock:
+            self.dogpilelock = lock
+        else:
+            self.dogpilelock = threading.Lock()
 
         self.expiretime = expiretime
         if init:
             self.createdtime = time.time()
-        else:
-            self.createdtime = -1
 
-    @clasmethod
-    def registry(cls, *arg, **kw):
-        """Return a name-based registry of :class:`.Dogpile` objects.
-        
-        The registry is an instance of :class:`.NameRegistry`,
-        and calling its ``get()`` method with an identifying 
-        key (anything hashable) will construct a new :class:`.Dogpile`
-        object, keyed to that key.  Subsequent usages will return
-        the same :class:`.Dogpile` object for as long as the 
-        object remains in scope.
+    createdtime = -1
+    """The last known 'creation time' of the value,
+    stored as an epoch (i.e. from ``time.time()``).
 
-        The given arguments are passed along to the underlying
-        constructor of the :class:`.Dogpile` class.
-
-        """
-        return NameRegistry(lambda identifier: cls(*arg, **kw))
+    If the value here is -1, it is assumed the value
+    should recreate immediately.
+    
+    """
 
     def acquire(self, creator, 
                         value_fn=None, 
@@ -129,8 +69,7 @@ class Dogpile(object):
          lock.   This option removes the need for the dogpile lock
          itself to remain persistent across usages; another 
          dogpile can come along later and pick up where the
-         previous one left off.   Should be used in conjunction
-         with a :class:`.NameRegistry`.
+         previous one left off.   
          
         """
         dogpile = self
@@ -214,11 +153,22 @@ class Dogpile(object):
         pass
 
 class SyncReaderDogpile(Dogpile):
+    """Provide a read-write lock function on top of the :class:`.Dogpile`
+    class.
+    
+    """
     def __init__(self, *args, **kw):
         super(SyncReaderDogpile, self).__init__(*args, **kw)
         self.readwritelock = ReadWriteMutex()
 
     def acquire_write_lock(self):
+        """Return the "write" lock context manager.
+        
+        This will provide a section that is mutexed against
+        all readers/writers for the dogpile-maintained value.
+        
+        """
+
         dogpile = self
         class Lock(object):
             def __enter__(self):
