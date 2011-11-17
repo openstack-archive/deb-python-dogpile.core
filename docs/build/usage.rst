@@ -99,7 +99,7 @@ With the above pattern, :class:`.SyncReaderDogpile` will
 allow concurrent readers to read from the current version 
 of the datafile as 
 the ``create_expensive_datafile()`` function proceeds with its
-job of generating the information for a new version.  
+job of generating the information for a new version.
 When the data is ready to be written,  the 
 :meth:`.SyncReaderDogpile.acquire_write_lock` call will 
 block until all current readers of the datafile have completed
@@ -161,6 +161,8 @@ Example::
 Note that ``get_value_from_cache()`` should not raise :class:`.NeedRegenerationException`
 a second time directly after ``create_and_cache_value()`` has been called.
 
+.. _caching_decorator:
+
 Using Dogpile for Caching
 --------------------------
 
@@ -220,6 +222,8 @@ In particular, Dogpile's system allows us to call the memcached get() function a
 once per access, instead of Beaker's system which calls it twice, and doesn't make us call
 get() when we just created the value.
 
+.. _scaling_on_keys:
+
 Scaling Dogpile against Many Keys
 ----------------------------------
 
@@ -254,14 +258,13 @@ constructed around the notion of a creation function that is only invoked
 as needed.   We also will instruct the :meth:`.Dogpile.acquire` method
 to use a "creation time" value that we retrieve from the cache, via
 the ``value_and_created_fn`` parameter, which supercedes the
-``value_fn`` we used earlier to expect a function that will return a tuple
-of ``(value, created_at)``::
+``value_fn`` we used earlier.  ``value_and_created_fn`` expects a function that will return a tuple
+of ``(value, created_at)``, where it's assumed both have been retrieved from
+the cache backend::
 
     import pylibmc
     import pickle
-    import os
     import time
-    import sha1
     from dogpile import Dogpile, NeedRegenerationException, NameRegistry
 
     mc_pool = pylibmc.ThreadMappedPool(pylibmc.Client("localhost"))
@@ -271,51 +274,133 @@ of ``(value, created_at)``::
 
     dogpile_registry = NameRegistry(create_dogpile)
 
-    def cache(expiration_time):
+    def get_or_create(key, expiration_time, creation_function):
+        def get_value():
+             with mc_pool.reserve() as mc:
+                value = mc.get(key)
+                if value is None:
+                    raise NeedRegenerationException()
+                # deserialize a tuple
+                # (value, createdtime)
+                return pickle.loads(value)
 
-        def get_or_create(key):
-            def get_value():
-                 with mc_pool.reserve() as mc:
-                    value = mc.get(key)
-                    if value is None:
-                        raise NeedRegenerationException()
-                    # deserialize a tuple
-                    # (value, createdtime)
-                    return pickle.loads(value)
+        def gen_cached():
+            value = creation_function()
+            with mc_pool.reserve() as mc:
+                # serialize a tuple
+                # (value, createdtime)
+                value = (value, time.time())
+                mc.put(mangled_key, pickle.dumps(value))
+            return value
 
-            dogpile = dogpile_registry.get(key, expiration_time)
+        dogpile = dogpile_registry.get(key, expiration_time)
 
-            def gen_cached():
-                value = fn()
-                with mc_pool.reserve() as mc:
-                    # serialize a tuple
-                    # (value, createdtime)
-                    value = (value, time.time())
-                    mc.put(mangled_key, pickle.dumps(value))
-                return value
+        with dogpile.acquire(gen_cached, value_and_created_fn=get_value) as value:
+            return value
 
-            with dogpile.acquire(gen_cached, value_and_created_fn=get_value) as value:
-                return value
 
-        return get_or_create
+Stepping through the above code:
 
-Above, we use ``Dogpile.registry()`` to create a name-based "registry" of ``Dogpile``
-objects.  This object will provide to us a ``Dogpile`` object that's 
-unique on a certain name (or any hashable object) when we call the ``get()`` method.  
-When all usages of that name are complete, the ``Dogpile``
-object falls out of scope.   This way, an application can handle millions of keys
-without needing to have millions of ``Dogpile`` objects persistently resident in memory.
+* After the imports, we set up the memcached backend using the ``pylibmc`` library's
+  recommended pattern for thread-safe access.
+* We create a Python function that will, given a cache key and an expiration time,
+  produce a :class:`.Dogpile` object which will produce the dogpile mutex on an
+  as-needed basis.   The function here doesn't actually need the key, even though
+  the :class:`.NameRegistry` will be passing it in.  Later, we'll see the scenario
+  for which we'll need this value.
+* We construct a :class:`.NameRegistry`, using our dogpile creator function, that
+  will generate for us new :class:`.Dogpile` locks for individual keys as needed.
+* We define the ``get_or_create()`` function.  This function will accept the cache
+  key, an expiration time value, and a function that is used to create a new value 
+  if one does not exist or the current value is expired.
+* The ``get_or_create()`` function defines two callables, ``get_value()`` and 
+  ``gen_cached()``.   These two functions are exactly analogous to the the
+  functions of the same name in :ref:`caching_decorator` - ``get_value()``
+  retrieves the value from the cache, raising :class:`.NeedRegenerationException`
+  if not present; ``gen_cached()`` calls the creation function to generate a new 
+  value, stores it in the cache, and returns it.  The only difference here is that
+  instead of storing and retrieving the value alone from the cache, the value is 
+  stored along with its creation time; when we make a new value, we set this
+  to ``time.time()``.  While the value and creation time pair are stored here 
+  as a pickled tuple, it doesn't actually matter how the two are persisted; 
+  only that the tuple value is returned from both functions.
+* We acquire a new or existing :class:`.Dogpile` object from the registry using
+  :meth:`.NameRegistry.get`.   We pass the identifying key as well as the expiration
+  time.   A new :class:`.Dogpile` is created for the given key if one does not 
+  exist.  If a :class:`.Dogpile` lock already exists in memory for the given key,
+  we get that one back.
+* We then call :meth:`.Dogpile.acquire` as we did in the previous cache examples,
+  except we use the ``value_and_created_fn`` keyword for our ``get_value()`` 
+  function.  :class:`.Dogpile` uses the "created time" value we pull from our 
+  cache to determine when the value was last created.
 
-The next part of the approach here is that we'll tell Dogpile that we'll give it 
-the "creation time" that we'll store in our
-cache - we do this using the ``value_and_created_fn`` argument, which assumes we'll
-be storing and loading the value as a tuple of (value, createdtime).  The creation time
-should always be calculated via ``time.time()``.   The ``acquire()`` function
-returns the "value" portion of the tuple to us and uses the 
-"createdtime" portion to determine if the value is expired.
+An example usage of the completed function::
 
+    import urllib2
+
+    def get_some_value(key):
+        """retrieve a datafile from a slow site based on the given key."""
+        def get_data():
+            return urllib2.urlopen(
+                        "http://someslowsite.com/some_important_datafile_%s.json" % key
+                    ).read()
+        return get_or_create(key, 3600, get_data)
+
+    my_data = get_some_value("somekey")
 
 Using a File or Distributed Lock with Dogpile
 ----------------------------------------------
 
-The example below will use a file-based mutex using `lockfile <http://pypi.python.org/pypi/lockfile>`_.
+The final twist on the caching pattern is to fix the issue of the Dogpile mutex
+itself being local to the current process.   When a handful of threads all go 
+to access some key in our cache, they will access the same :class:`.Dogpile` object
+which internally can synchronize their activity using a Python ``threading.Lock``.
+But in this example we're talking to a Memcached cache.  What if we have many 
+servers which all access this cache?  We'd like all of these servers to coordinate
+together so that we don't just prevent the dogpile problem within a single process,
+we prevent it across all servers.
+
+To accomplish this, we need an object that can coordinate processes.   In this example
+we'll use a file-based lock as provided by the `lockfile <http://pypi.python.org/pypi/lockfile>`_
+package, which uses a unix-symlink concept to provide a filesystem-level lock (which also
+has been made threadsafe).  Another strategy may base itself directly off the Unix ``os.flock()``
+call, and still another approach is to lock within Memcached itself, using a recipe 
+such as that described at `Using Memcached as a Distributed Locking Service <http://www.regexprn.com/2010/05/using-memcached-as-distributed-locking.html>`_.
+The type of lock chosen here is based on a tradeoff between global availability
+and reliable performance.  The file-based lock will perform more reliably than the
+memcached lock, but may be difficult to make accessible to multiple servers (with NFS 
+being the most likely option, which would eliminate the possibility of the ``os.flock()``
+call).  The memcached lock on the other hand will provide the perfect scope, being available
+from the same memcached server that the cached value itself comes from; however the lock may
+vanish in some cases, which means we still could get a cache-regeneration pileup in that case.
+
+What all of these locking schemes have in common is that unlike the Python ``threading.Lock``
+object, they all need access to an actual key which acts as the symbol that all processes
+will coordinate upon.   This is where the ``key`` argument to our ``create_dogpile()``
+function introduced in :ref:`scaling_on_keys` comes in.   The example can remain
+the same, except for the changes below to just that function::
+
+    import lockfile
+    import os
+    from hashlib import sha1
+
+    # ... other imports and setup from the previous example
+
+    def create_dogpile(key, expiration_time):
+        lock_path = os.path.join("/tmp", "%s.lock" % sha1(key).hexdigest())
+        return Dogpile(
+                    expiration_time,
+                    lock=lockfile.FileLock(path)
+                    )
+
+    # ... everything else from the previous example
+
+Where above,the only change is the ``lock`` argument passed to the constructor of
+:class:`.Dogpile`.   For a given key "some_key", we generate a hex digest of it
+first as a quick way to remove any filesystem-unfriendly characters, we then use
+``lockfile.FileLock()`` to create a lock against the file 
+``/tmp/53def077a4264bd3183d4eb21b1f56f883e1b572.lock``.   Any number of :class:`.Dogpile`
+objects in various processes will now coordinate with each other, using this common 
+filename as the "baton" against which creation of a new value proceeds.
+
+
