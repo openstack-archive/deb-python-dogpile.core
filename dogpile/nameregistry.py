@@ -39,7 +39,11 @@ class NameRegistry(object):
     all threads requesting a certain key use the same
     :class:`.Dogpile` object, without the need to maintain
     each :class:`.Dogpile` object persistently in memory.
-    
+
+    :param creator: A function that will create a new
+     value, given the identifier passed to the :meth:`.NameRegistry.get`
+     method.
+
     """
     _locks = weakref.WeakValueDictionary()
     _mutex = threading.RLock()
@@ -47,9 +51,6 @@ class NameRegistry(object):
     def __init__(self, creator):
         """Create a new :class:`.NameRegistry`.
         
-        :param creator: A function that will create a new
-         value, given the identifier passed to the :meth:`.NameRegistry.get`
-         method.
          
         """
         self._values = weakref.WeakValueDictionary()

@@ -21,17 +21,17 @@ class Dogpile(object):
     thread/process to be elected as the creator of a new value, 
     while other threads/processes continue to return the previous version 
     of that value.
-    
+
+    :param expiretime: Expiration time in seconds.
+    :param init: if True, set the 'createdtime' to the
+     current time.
+    :param lock: a mutex object that provides
+     ``acquire()`` and ``release()`` methods.
+        
     """
     def __init__(self, expiretime, init=False, lock=None):
         """Construct a new :class:`.Dogpile`.
 
-        :param expiretime: Expiration time in seconds.
-        :param init: if True, set the 'createdtime' to the
-         current time.
-        :param lock: a mutex object that provides
-         ``acquire()`` and ``release()`` methods.
-        
         """
         if lock:
             self.dogpilelock = lock
