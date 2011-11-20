@@ -3,6 +3,9 @@ try:
 except ImportError:
     import dummy_threading as threading
 
+import logging
+log = logging.getLogger(__name__)
+
 class ReadWriteMutex(object):
     """A mutex which allows multiple readers, single writer.
     
@@ -41,6 +44,7 @@ class ReadWriteMutex(object):
                     return False
 
             self.async += 1
+            log.debug("%s acquired read lock", self)
         finally:
             self.condition.release()
 
@@ -63,6 +67,7 @@ class ReadWriteMutex(object):
             elif self.async < 0:
                 raise LockError("Synchronizer error - too many "
                                 "release_read_locks called")
+            log.debug("%s released read lock", self)
         finally:
             self.condition.release()
 
@@ -97,6 +102,7 @@ class ReadWriteMutex(object):
                     # we dont want to wait, so forget it
                     self.current_sync_operation = None
                     return False
+            log.debug("%s acquired write lock", self)
         finally:
             self.condition.release()
 
@@ -117,6 +123,8 @@ class ReadWriteMutex(object):
 
             # tell everyone to get ready
             self.condition.notifyAll()
+
+            log.debug("%s released write lock", self)
         finally:
             # everyone go !!
             self.condition.release()
