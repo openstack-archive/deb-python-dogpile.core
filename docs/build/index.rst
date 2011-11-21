@@ -14,6 +14,7 @@ which provides for a basic cache API and sample backends based on the dogpile co
 .. toctree::
    :maxdepth: 2
 
+   front
    usage
    api
 

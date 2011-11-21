@@ -1,6 +1,6 @@
-====================
-Dogpile Usage Guide
-====================
+===========
+Usage Guide
+===========
 
 At its core, Dogpile provides a locking interface around a "value creation" function.
 
@@ -11,10 +11,21 @@ provide examples that use successively more and more of these features, as
 we approach how a fully featured caching system might be constructed around
 Dogpile.
 
-Note that when using the `dogpile.cache <http://bitbucket.org/zzzeek/dogpile.cache>`_
-package, the constructs here provide the internal implementation for that system,
-and users of that system don't need to access these APIs directly (though understanding
-the general patterns is a terrific idea in any case).
+Do I Need to Learn Dogpile's API Directly?
+==========================================
+
+It's anticipated that most users of Dogpile will be using it indirectly via the
+`dogpile.cache <http://bitbucket.org/zzzeek/dogpile.cache>`_ caching
+front-end.  If you fall into this category, then the short answer is no.
+
+Dogpile provides core internals to the 
+`dogpile.cache <http://bitbucket.org/zzzeek/dogpile.cache>`_
+package, which provides a simple-to-use caching API, rudimental
+backends for Memcached and others, and easy hooks to add new backends.  
+Users of dogpile.cache
+don't need to know or access Dogpile's APIs directly, though a rough understanding
+the general idea is always helpful.
+
 Using the core Dogpile APIs described here directly implies you're building your own 
 resource-usage system outside, or in addition to, the one 
 `dogpile.cache <http://bitbucket.org/zzzeek/dogpile.cache>`_ provides.
