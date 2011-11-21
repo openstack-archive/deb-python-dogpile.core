@@ -1,4 +1,4 @@
-from util import thread, threading
+from util import threading
 import time
 import logging
 from readwrite_lock import ReadWriteMutex

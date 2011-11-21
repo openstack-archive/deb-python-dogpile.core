@@ -1,10 +1,10 @@
-try:
-    import threading
-except ImportError:
-    import dummy_threading as threading
+from util import threading
 
 import logging
 log = logging.getLogger(__name__)
+
+class LockError(Exception):
+    pass
 
 class ReadWriteMutex(object):
     """A mutex which allows multiple readers, single writer.
