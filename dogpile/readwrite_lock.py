@@ -114,7 +114,7 @@ class ReadWriteMutex(object):
         self.condition.acquire()
         try:
             if self.current_sync_operation is not threading.currentThread():
-                raise Exception("Synchronizer error - current thread doesn't "
+                raise LockError("Synchronizer error - current thread doesn't "
                                 "have the write lock")
 
             # reset the current sync operation so 
