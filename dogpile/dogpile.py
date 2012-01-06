@@ -24,7 +24,8 @@ class Dogpile(object):
     continue to return the previous version 
     of that value.
 
-    :param expiretime: Expiration time in seconds.
+    :param expiretime: Expiration time in seconds.  Set to
+     ``None`` for never expires.
     :param init: if True, set the 'createdtime' to the
      current time.
     :param lock: a mutex object that provides
@@ -91,7 +92,10 @@ class Dogpile(object):
         value is available."""
 
         return not self.has_value or \
-            time.time() - self.createdtime > self.expiretime
+            (
+                self.expiretime is not None and 
+                time.time() - self.createdtime > self.expiretime
+            )
 
     @property
     def has_value(self):

@@ -16,6 +16,8 @@
   value can come from the cache, thus eliminating the 
   need for the dogpile lock to hang around persistently.
 
+- expire time of None means "never expire".
+
 0.2.0
 =====
 

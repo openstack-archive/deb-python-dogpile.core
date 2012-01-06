@@ -8,7 +8,7 @@ import math
 import logging
 log = logging.getLogger(__name__)
 
-class DogpileTest(TestCase):
+class ConcurrencyTest(TestCase):
     # expiretime, time to create, num usages, time spend using, delay btw usage
     timings = [
         # quick one
@@ -327,7 +327,7 @@ class DogpileTest(TestCase):
             "expected %d" % (len(the_resource), 
                 expected_generations)
 
-class SingleCreateTest(TestCase):
+class DogpileTest(TestCase):
     def test_single_create(self):
         dogpile = Dogpile(2)
         the_resource = [0]
@@ -347,3 +347,18 @@ class SingleCreateTest(TestCase):
 
         with dogpile.acquire(create_resource):
             assert the_resource[0] == 2
+    
+    def test_no_expiration(self):
+        dogpile = Dogpile(None)
+        the_resource = [0]
+
+        def create_resource():
+            the_resource[0] += 1
+
+        with dogpile.acquire(create_resource):
+            assert the_resource[0] == 1
+
+        with dogpile.acquire(create_resource):
+            assert the_resource[0] == 1
+
+        
