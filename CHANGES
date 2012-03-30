@@ -1,3 +1,8 @@
+0.2.2
+=====
+
+- expire time of None means "never expire".
+
 0.2.1
 =====
 
@@ -15,8 +20,6 @@
   (value, createdtime), so that the creation time of the 
   value can come from the cache, thus eliminating the 
   need for the dogpile lock to hang around persistently.
-
-- expire time of None means "never expire".
 
 0.2.0
 =====
