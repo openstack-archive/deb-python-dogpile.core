@@ -15,7 +15,7 @@ class ConcurrencyTest(TestCase):
         (2, .5, 50, .05, .1),
 
         # slow creation time
-        (5, 2, 50, .1, .1),  
+        (5, 2, 50, .1, .1),
 
     ]
 
@@ -180,7 +180,7 @@ class ConcurrencyTest(TestCase):
                     # should never hit a cache invalidation 
                     # if we've set expiretime below the cache 
                     # expire time (assuming a cache which
-                    # honors this).  
+                    # honors this).
                     self._assert_log(
                         cache_expire_time < expiretime,
                         "Cache expiration hit, cache "
@@ -347,7 +347,7 @@ class DogpileTest(TestCase):
 
         with dogpile.acquire(create_resource):
             assert the_resource[0] == 2
-    
+
     def test_no_expiration(self):
         dogpile = Dogpile(None)
         the_resource = [0]
@@ -361,4 +361,3 @@ class DogpileTest(TestCase):
         with dogpile.acquire(create_resource):
             assert the_resource[0] == 1
 
-        
