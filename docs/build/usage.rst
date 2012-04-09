@@ -233,7 +233,6 @@ of ``(value, created_at)``, where it's assumed both have been retrieved from
 the cache backend::
 
     import pylibmc
-    import pickle
     import time
     from dogpile import Dogpile, NeedRegenerationException, NameRegistry
 
@@ -247,21 +246,21 @@ the cache backend::
     def get_or_create(key, expiration_time, creation_function):
         def get_value():
              with mc_pool.reserve() as mc:
-                value = mc.get(key)
-                if value is None:
+                value_plus_time = mc.get(key)
+                if value_plus_time is None:
                     raise NeedRegenerationException()
-                # deserialize a tuple
+                # return a tuple
                 # (value, createdtime)
-                return pickle.loads(value)
+                return value_plus_time
 
         def gen_cached():
             value = creation_function()
             with mc_pool.reserve() as mc:
-                # serialize a tuple
+                # create a tuple
                 # (value, createdtime)
-                value = (value, time.time())
-                mc.put(mangled_key, pickle.dumps(value))
-            return value
+                value_plus_time = (value, time.time())
+                mc.put(key, value_plus_time)
+            return value_plus_time
 
         dogpile = dogpile_registry.get(key, expiration_time)
 
@@ -292,7 +291,7 @@ Stepping through the above code:
   instead of storing and retrieving the value alone from the cache, the value is 
   stored along with its creation time; when we make a new value, we set this
   to ``time.time()``.  While the value and creation time pair are stored here 
-  as a pickled tuple, it doesn't actually matter how the two are persisted; 
+  as a tuple, it doesn't actually matter how the two are persisted; 
   only that the tuple value is returned from both functions.
 * We acquire a new or existing :class:`.Dogpile` object from the registry using
   :meth:`.NameRegistry.get`.   We pass the identifying key as well as the expiration
