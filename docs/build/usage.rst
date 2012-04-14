@@ -2,31 +2,31 @@
 Usage Guide
 ===========
 
-At its core, Dogpile provides a locking interface around a "value creation" function.
+At its core, dogpile.core provides a locking interface around a "value creation" function.
 
 The interface supports several levels of usage, starting from
 one that is very rudimentary, then providing more intricate 
 usage patterns to deal with certain scenarios.  The documentation here will attempt to 
 provide examples that use successively more and more of these features, as 
 we approach how a fully featured caching system might be constructed around
-Dogpile.
+dogpile.core.
 
-Do I Need to Learn Dogpile's API Directly?
-==========================================
+Do I Need to Learn the dogpile.core API Directly?
+=================================================
 
-It's anticipated that most users of Dogpile will be using it indirectly via the
+It's anticipated that most users of dogpile.core will be using it indirectly via the
 `dogpile.cache <http://bitbucket.org/zzzeek/dogpile.cache>`_ caching
 front-end.  If you fall into this category, then the short answer is no.
 
-Dogpile provides core internals to the 
+dogpile.core provides core internals to the 
 `dogpile.cache <http://bitbucket.org/zzzeek/dogpile.cache>`_
 package, which provides a simple-to-use caching API, rudimental
 backends for Memcached and others, and easy hooks to add new backends.  
 Users of dogpile.cache
-don't need to know or access Dogpile's APIs directly, though a rough understanding
+don't need to know or access dogpile.core's APIs directly, though a rough understanding
 the general idea is always helpful.
 
-Using the core Dogpile APIs described here directly implies you're building your own 
+Using the core dogpile.core APIs described here directly implies you're building your own 
 resource-usage system outside, or in addition to, the one 
 `dogpile.cache <http://bitbucket.org/zzzeek/dogpile.cache>`_ provides.
 
@@ -83,11 +83,11 @@ Using a Value Function with a Cache Backend
 =============================================
 
 The dogpile lock includes a more intricate mode of usage to optimize the
-usage of a cache like Memcached.   The difficulties Dogpile addresses
+usage of a cache like Memcached.   The difficulties :class:`.Dogpile` addresses
 in this mode are:
 
 * Values can disappear from the cache at any time, before our expiration
-  time is reached. Dogpile needs to be made aware of this and possibly 
+  time is reached. :class:`.Dogpile` needs to be made aware of this and possibly 
   call the creation function ahead of schedule.
 * There's no function in a Memcached-like system to "check" for a key without 
   actually retrieving it.  If we need to "check" for a key each time, 
@@ -97,11 +97,11 @@ in this mode are:
 
 To use this mode, the steps are as follows:
 
-* Create the Dogpile lock with ``init=True``, to skip the initial
+* Create the :class:`.Dogpile` lock with ``init=True``, to skip the initial
   "force" of the creation function.   This is assuming you'd like to
   rely upon the "check the value" function for the initial generation.
   Leave it at False if you'd like the application to regenerate the
-  value unconditionally when the dogpile lock is first created
+  value unconditionally when the :class:`.Dogpile` lock is first created
   (i.e. typically application startup).
 * The "creation" function should return the value it creates.
 * An additional "getter" function is passed to ``acquire()`` which
