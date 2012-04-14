@@ -2,22 +2,22 @@
 API
 ===
 
-Dogpile
-========
+dogpile.core
+=============
 
-.. automodule:: dogpile.dogpile
+.. automodule:: dogpile.core
     :members:
 
 NameRegistry
 =============
 
-.. automodule:: dogpile.nameregistry
+.. automodule:: dogpile.core.nameregistry
     :members:
 
 Utilities
 ==========
 
-.. automodule:: dogpile.readwrite_lock
+.. automodule:: dogpile.core.readwrite_lock
     :members:
 
 

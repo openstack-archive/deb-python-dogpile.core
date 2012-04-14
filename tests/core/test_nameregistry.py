@@ -1,7 +1,7 @@
 from unittest import TestCase
 import time
 import threading
-from dogpile.nameregistry import NameRegistry
+from dogpile.core.nameregistry import NameRegistry
 import random
 
 import logging

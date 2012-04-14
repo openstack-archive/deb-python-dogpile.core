@@ -1,8 +1,8 @@
 from unittest import TestCase
 import time
 import threading
-from dogpile import Dogpile, SyncReaderDogpile, NeedRegenerationException
-from dogpile.nameregistry import NameRegistry
+from dogpile.core import Dogpile, SyncReaderDogpile, NeedRegenerationException
+from dogpile.core.nameregistry import NameRegistry
 import contextlib
 import math
 import logging

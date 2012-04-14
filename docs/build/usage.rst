@@ -35,7 +35,7 @@ Rudimentary Usage
 
 A simple example::
 
-    from dogpile import Dogpile
+    from dogpile.core import Dogpile
 
     # store a reference to a "resource", some 
     # object that is expensive to create.
@@ -110,7 +110,7 @@ To use this mode, the steps are as follows:
 
 Example::
 
-    from dogpile import Dogpile, NeedRegenerationException
+    from dogpile.core import Dogpile, NeedRegenerationException
 
     def get_value_from_cache():
         value = my_cache.get("some key")
@@ -149,7 +149,7 @@ this one function/key::
     import pylibmc
     mc_pool = pylibmc.ThreadMappedPool(pylibmc.Client("localhost"))
 
-    from dogpile import Dogpile, NeedRegenerationException
+    from dogpile.core import Dogpile, NeedRegenerationException
 
     def cached(key, expiration_time):
         """A decorator that will cache the return value of a function
@@ -234,7 +234,7 @@ the cache backend::
 
     import pylibmc
     import time
-    from dogpile import Dogpile, NeedRegenerationException, NameRegistry
+    from dogpile.core import Dogpile, NeedRegenerationException, NameRegistry
 
     mc_pool = pylibmc.ThreadMappedPool(pylibmc.Client("localhost"))
 
@@ -389,7 +389,7 @@ To enable this feature, use :class:`.SyncReaderDogpile`.
 for the critical section where readers should be blocked::
 
 
-    from dogpile import SyncReaderDogpile
+    from dogpile.core import SyncReaderDogpile
 
     dogpile = SyncReaderDogpile(3600)
 

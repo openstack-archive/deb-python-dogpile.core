@@ -1,5 +1,6 @@
-dogpile
-========
+dogpile.core
+============
+
 A "dogpile" lock, one which allows a single thread to generate
 an expensive resource while other threads use the "old" value, until the
 "new" value is ready.
@@ -12,7 +13,7 @@ Usage
 
 A simple example::
 
-    from dogpile import Dogpile
+    from dogpile.core import Dogpile
 
     # store a reference to a "resource", some 
     # object that is expensive to create.

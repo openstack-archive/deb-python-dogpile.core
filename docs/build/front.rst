@@ -2,24 +2,24 @@
 Front Matter
 ============
 
-Information about the Dogpile project.
+Information about the dogpile.core project.
 
 Project Homepage
 ================
 
-Dogpile is hosted on `Bitbucket <http://bitbucket.org>`_ - the lead project page is at https://bitbucket.org/zzzeek/dogpile.  Source
+dogpile.core is hosted on `Bitbucket <http://bitbucket.org>`_ - the lead project page is at https://bitbucket.org/zzzeek/dogpile.core.  Source
 code is tracked here using `Mercurial <http://mercurial.selenic.com/>`_.
 
-Releases and project status are available on Pypi at http://pypi.python.org/pypi/dogpile.
+Releases and project status are available on Pypi at http://pypi.python.org/pypi/dogpile.core.
 
-The most recent published version of this documentation should be at http://readthedocs.org/docs/dogpile/.
+The most recent published version of this documentation should be at http://dogpilecore.readthedocs.org.
 
 Installation
 ============
 
-Install released versions of Dogpile from the Python package index with `pip <http://pypi.python.org/pypi/pip>`_ or a similar tool::
+Install released versions of dogpile.core from the Python package index with `pip <http://pypi.python.org/pypi/pip>`_ or a similar tool::
 
-    pip install dogpile
+    pip install dogpile.core
 
 Installation via source distribution is via the ``setup.py`` script::
 
@@ -28,19 +28,19 @@ Installation via source distribution is via the ``setup.py`` script::
 Community
 =========
 
-Dogpile is developed by `Mike Bayer <http://techspot.zzzeek.org>`_, and is 
+dogpile.core is developed by `Mike Bayer <http://techspot.zzzeek.org>`_, and is 
 loosely associated with the `Pylons Project <http://www.pylonsproject.org/>`_.
-As Dogpile's usage increases, it is anticipated that the Pylons mailing list and IRC channel
+As usage of dogpile.core and dogpile.cache increases, it is anticipated that the Pylons mailing list and IRC channel
 will become the primary channels for support.
 
 Bugs
 ====
-Bugs and feature enhancements to Dogpile should be reported on the `Bitbucket
+Bugs and feature enhancements to dogpile.core should be reported on the `Bitbucket
 issue tracker
 <https://bitbucket.org/zzzeek/dogpile/issues?status=new&status=open>`_.  If you're not sure 
-that a particular issue is specific to either dogpile.cache or Dogpile, posting to the `dogpile.cache issue tracker <https://bitbucket.org/zzzeek/dogpile.cache/issues?status=new&status=open>`_
+that a particular issue is specific to either dogpile.cache or dogpile.core, posting to the `dogpile.cache issue tracker <https://bitbucket.org/zzzeek/dogpile.cache/issues?status=new&status=open>`_
 is likely the better place to post first, but it's not critical either way.
 
 * `dogpile.cache issue tracker <https://bitbucket.org/zzzeek/dogpile.cache/issues?status=new&status=open>`_ (post here if unsure)
-* `dogpile issue tracker <https://bitbucket.org/zzzeek/dogpile/issues?status=new&status=open>`_
+* `dogpile.core issue tracker <https://bitbucket.org/zzzeek/dogpile.core/issues?status=new&status=open>`_
 
