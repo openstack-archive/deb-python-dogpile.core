@@ -133,10 +133,10 @@ a second time directly after ``create_and_cache_value()`` has been called.
 
 .. _caching_decorator:
 
-Using Dogpile for Caching
-==========================
+Using dogpile.core for Caching
+===============================
 
-Dogpile is part of an effort to "break up" the Beaker
+dogpile.core is part of an effort to "break up" the Beaker
 package into smaller, simpler components (which also work better). Here, we
 illustrate how to approximate Beaker's "cache decoration"
 function, to decorate any function and store the value in
@@ -184,18 +184,18 @@ Above we can decorate any function as::
     def generate_my_expensive_value():
         return slow_database.lookup("stuff")
 
-The Dogpile lock will ensure that only one thread at a time performs ``slow_database.lookup()``,
+The :class:`.Dogpile` lock will ensure that only one thread at a time performs ``slow_database.lookup()``,
 and only every 3600 seconds, unless Memcached has removed the value in which case it will
 be called again as needed.
 
-In particular, Dogpile's system allows us to call the memcached get() function at most
+In particular, dogpile.core's system allows us to call the memcached get() function at most
 once per access, instead of Beaker's system which calls it twice, and doesn't make us call
 get() when we just created the value.
 
 .. _scaling_on_keys:
 
-Scaling Dogpile against Many Keys
-===================================
+Scaling dogpile.core against Many Keys
+=======================================
 
 The patterns so far have illustrated how to use a single, persistently held
 :class:`.Dogpile` object which maintains a thread-based lock for the lifespan

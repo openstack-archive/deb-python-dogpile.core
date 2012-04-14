@@ -52,13 +52,13 @@ fall through, and not be blocked.  It is expected that
 the "stale" version of the resource remain available at this
 time while the new one is generated.
 
-Dogpile is at the core of the `dogpile.cache <http://bitbucket.org/zzzeek/dogpile.cache>`_ package
+dogpile.core is at the core of the `dogpile.cache <http://bitbucket.org/zzzeek/dogpile.cache>`_ package
 which provides for a basic cache API and sample backends based on the dogpile concept.
 
 Development Status
 -------------------
 
-Please note Dogpile is new and has only had minimal production usage !   Comments
+Please note dogpile.core is new and has only had minimal production usage !   Comments
 and improvements are welcome.  Since this is concurrency-oriented code, please review
 the source and let me know about potential issues.   As always, **use at your own risk!**
 

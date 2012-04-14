@@ -2,22 +2,30 @@
 API
 ===
 
-dogpile.core
-=============
+.. currentmodule:: dogpile.core
 
-.. automodule:: dogpile.core
+Dogpile
+=======
+
+.. autoclass:: Dogpile
+    :members:
+
+.. autoclass:: SyncReaderDogpile
+    :members:
+
+.. autoclass:: NeedRegenerationException
     :members:
 
 NameRegistry
 =============
 
-.. automodule:: dogpile.core.nameregistry
+.. autoclass:: NameRegistry
     :members:
 
 Utilities
 ==========
 
-.. automodule:: dogpile.core.readwrite_lock
+.. autoclass:: ReadWriteMutex
     :members:
 
 
