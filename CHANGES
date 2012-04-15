@@ -1,3 +1,8 @@
+0.3.1
+=====
+- py3k compatibility is in-place now, no
+  2to3 needed.
+
 0.3.0
 =====
 
