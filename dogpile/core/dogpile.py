@@ -1,7 +1,7 @@
-from util import threading
+from .util import threading
 import time
 import logging
-from readwrite_lock import ReadWriteMutex
+from .readwrite_lock import ReadWriteMutex
 
 log = logging.getLogger(__name__)
 

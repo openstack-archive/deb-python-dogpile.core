@@ -1,4 +1,4 @@
-from util import threading
+from .util import threading
 import weakref
 
 class NameRegistry(object):

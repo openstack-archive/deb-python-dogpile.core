@@ -26,8 +26,8 @@ class NameRegistryTest(TestCase):
         }
 
         def do_something(name):
-            for iteration in xrange(20):
-                name = baton.keys()[random.randint(0, 2)]
+            for iteration in range(20):
+                name = list(baton)[random.randint(0, 2)]
                 lock = registry.get(name)
                 lock.acquire()
                 try:

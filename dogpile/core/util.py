@@ -1,7 +1,8 @@
+import sys
+py3k = sys.version_info >= (3, 0)
+
 try:
     import threading
-    import thread
 except ImportError:
     import dummy_threading as threading
-    import dummy_thread as thread
 

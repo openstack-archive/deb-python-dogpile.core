@@ -1,4 +1,4 @@
-from util import threading
+from .util import threading
 
 import logging
 log = logging.getLogger(__name__)
