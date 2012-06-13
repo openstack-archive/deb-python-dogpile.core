@@ -15,7 +15,7 @@ setup(name='dogpile.core',
       description="A 'dogpile' lock, typically used as a component of a larger caching solution",
       long_description=open(readme).read(),
       classifiers=[
-      'Development Status :: 3 - Alpha',
+      'Development Status :: 4 - Beta',
       'Intended Audience :: Developers',
       'License :: OSI Approved :: BSD License',
       'Programming Language :: Python',
