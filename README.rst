@@ -58,10 +58,10 @@ which provides for a basic cache API and sample backends based on the dogpile co
 Development Status
 -------------------
 
-Please note dogpile.core is new and has only had minimal production usage !   Comments
-and improvements are welcome.  Since this is concurrency-oriented code, please review
-the source and let me know about potential issues.   As always, **use at your own risk!**
-
+dogpile.core has been in use in a small number of production environments for a period of
+months, and as of 0.3.2 has entered beta status.  No issues have been reported yet with its
+core synchronization model, and overall the project hasn't seen many changes. 
+Most development continues within dogpile.cache.   
 
 
 
