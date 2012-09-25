@@ -1,3 +1,8 @@
+0.3.3
+=====
+- repair setup.py so that tests don't install,
+  courtesy Ben Hayden.
+
 0.3.2
 =====
 - upgrade to beta.
@@ -24,18 +29,18 @@
 =====
 
 - Add new "nameregistry" helper.  Another fixture
-  derived from Beaker, this allows the ad-hoc creation of 
+  derived from Beaker, this allows the ad-hoc creation of
   a new Dogpile lock based on a name, where all other
-  threads calling that name at the same time will get 
+  threads calling that name at the same time will get
   the same Dogpile lock.  Allows any number of
   logical "dogpile" actions to carry on concurrently
   without any memory taken up outside of those operations.
 
 - To support the use case supported by nameregistry, added
-  value_and_created_fn to dogpile.acquire().  The idea 
-  is that the value_and_created_fn can return 
-  (value, createdtime), so that the creation time of the 
-  value can come from the cache, thus eliminating the 
+  value_and_created_fn to dogpile.acquire().  The idea
+  is that the value_and_created_fn can return
+  (value, createdtime), so that the creation time of the
+  value can come from the cache, thus eliminating the
   need for the dogpile lock to hang around persistently.
 
 0.2.0

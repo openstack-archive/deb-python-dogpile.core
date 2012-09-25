@@ -4,5 +4,5 @@ from .readwrite_lock import ReadWriteMutex
 
 __all__ = 'Dogpile', 'SyncReaderDogpile', 'NeedRegenerationException', 'NameRegistry', 'ReadWriteMutex'
 
-__version__ = '0.3.2'
+__version__ = '0.3.3'
 
