@@ -31,15 +31,6 @@ class NameRegistry(object):
     object is *removed* from the :class:`.NameRegistry` as
     a result of Python garbage collection.
 
-    :class:`.NameRegistry` is a utility object that
-    is used to maintain new :class:`.Dogpile` objects
-    against a certain key, for as long as that particular key
-    is referenced within the application.   An application
-    can deal with an arbitrary number of keys, ensuring that
-    all threads requesting a certain key use the same
-    :class:`.Dogpile` object, without the need to maintain
-    each :class:`.Dogpile` object persistently in memory.
-
     :param creator: A function that will create a new
      value, given the identifier passed to the :meth:`.NameRegistry.get`
      method.
