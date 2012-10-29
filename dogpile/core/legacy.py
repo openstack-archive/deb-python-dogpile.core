@@ -144,9 +144,9 @@ class SyncReaderDogpile(Dogpile):
 
     @contextlib.contextmanager
     def acquire(self, *arg, **kw):
-        with super(SyncReaderDogpile, self).acquire(*arg, **kw):
+        with super(SyncReaderDogpile, self).acquire(*arg, **kw) as value:
             self.readwritelock.acquire_read_lock()
             try:
-                yield
+                yield value
             finally:
                 self.readwritelock.release_read_lock()

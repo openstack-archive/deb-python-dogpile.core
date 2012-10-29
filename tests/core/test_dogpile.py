@@ -248,7 +248,7 @@ class ConcurrencyTest(TestCase):
                 failures[0] += 1
 
         def check_value(value, waited):
-            assert value
+            assert value, repr(value)
 
             # time since the current resource was
             # created
