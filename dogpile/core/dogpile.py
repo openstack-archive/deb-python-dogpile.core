@@ -1,7 +1,5 @@
-from .util import threading
 import time
 import logging
-from .readwrite_lock import ReadWriteMutex
 
 log = logging.getLogger(__name__)
 
@@ -15,6 +13,43 @@ class NeedRegenerationException(Exception):
 NOT_REGENERATED = object()
 
 class Lock(object):
+    """Dogpile lock class.
+
+    Provides an interface around an arbitrary mutex
+    that allows one thread/process to be elected as
+    the creator of a new value, while other threads/processes
+    continue to return the previous version
+    of that value.
+
+    .. versionadded:: 0.4.0
+        The :class:`.Lock` class was added as a single-use object
+        representing the dogpile API without dependence on
+        any shared state between multiple instances.
+
+    :param mutex: A mutex object that provides ``acquire()``
+     and ``release()`` methods.
+    :param creator: Callable which returns a tuple of the form
+     (new_value, creation_time).  "new_value" should be a newly
+     generated value representing completed state.  "creation_time"
+     should be a floating point time value which is relative
+     to Python's ``time.time()`` call, representing the time
+     at which the value was created.  This time value should
+     be associated with the created value.
+    :param value_and_created_fn: Callable which returns
+     a tuple of the form (existing_value, creation_time).  This
+     basically should return what the last local call to the ``creator()``
+     callable has returned, i.e. the value and the creation time,
+     which would be assumed here to be from a cache.  If the
+     value is not available, the :class:`.NeedRegenerationException`
+     exception should be thrown.
+    :param expiretime: Expiration time in seconds.  Set to
+     ``None`` for never expires.  This timestamp is compared
+     to the creation_time result and ``time.time()`` to determine if
+     the value returned by value_and_created_fn is "expired".
+
+
+    """
+
     def __init__(self,
             mutex,
             creator,
@@ -109,140 +144,3 @@ class Lock(object):
     def __exit__(self, type, value, traceback):
         pass
 
-class Dogpile(object):
-    """Dogpile lock class.
-
-    Provides an interface around an arbitrary mutex
-    that allows one thread/process to be elected as
-    the creator of a new value, while other threads/processes
-    continue to return the previous version
-    of that value.
-
-    :param expiretime: Expiration time in seconds.  Set to
-     ``None`` for never expires.
-    :param init: if True, set the 'createdtime' to the
-     current time.
-    :param lock: a mutex object that provides
-     ``acquire()`` and ``release()`` methods.
-
-    """
-    def __init__(self, expiretime, init=False, lock=None):
-        """Construct a new :class:`.Dogpile`.
-
-        """
-        if lock:
-            self.dogpilelock = lock
-        else:
-            self.dogpilelock = threading.Lock()
-
-        self.expiretime = expiretime
-        if init:
-            self.createdtime = time.time()
-
-    createdtime = -1
-    """The last known 'creation time' of the value,
-    stored as an epoch (i.e. from ``time.time()``).
-
-    If the value here is -1, it is assumed the value
-    should recreate immediately.
-
-    """
-
-    def acquire(self, creator,
-                        value_fn=None,
-                        value_and_created_fn=None):
-        """Acquire the lock, returning a context manager.
-
-        :param creator: Creation function, used if this thread
-         is chosen to create a new value.
-
-        :param value_fn: Optional function that returns
-         the value from some datasource.  Will be returned
-         if regeneration is not needed.
-
-        :param value_and_created_fn: Like value_fn, but returns a tuple
-         of (value, createdtime).  The returned createdtime
-         will replace the "createdtime" value on this dogpile
-         lock.   This option removes the need for the dogpile lock
-         itself to remain persistent across usages; another
-         dogpile can come along later and pick up where the
-         previous one left off.
-
-        """
-
-        if value_and_created_fn is None:
-            if value_fn is None:
-                def value_and_created_fn():
-                    return None, self.createdtime
-            else:
-                def value_and_created_fn():
-                    return value_fn(), self.createdtime
-
-            def creator_wrapper():
-                value = creator()
-                self.createdtime = time.time()
-                return value, self.createdtime
-        else:
-            def creator_wrapper():
-                value = creator()
-                self.createdtime = time.time()
-                return value
-
-        return Lock(
-            self.dogpilelock,
-            creator_wrapper,
-            value_and_created_fn,
-            self.expiretime
-        )
-
-    @property
-    def is_expired(self):
-        """Return true if the expiration time is reached, or no
-        value is available."""
-
-        return not self.has_value or \
-            (
-                self.expiretime is not None and
-                time.time() - self.createdtime > self.expiretime
-            )
-
-    @property
-    def has_value(self):
-        """Return true if the creation function has proceeded
-        at least once."""
-        return self.createdtime > 0
-
-
-class SyncReaderDogpile(Dogpile):
-    """Provide a read-write lock function on top of the :class:`.Dogpile`
-    class.
-
-    """
-    def __init__(self, *args, **kw):
-        super(SyncReaderDogpile, self).__init__(*args, **kw)
-        self.readwritelock = ReadWriteMutex()
-
-    def acquire_write_lock(self):
-        """Return the "write" lock context manager.
-
-        This will provide a section that is mutexed against
-        all readers/writers for the dogpile-maintained value.
-
-        """
-
-        dogpile = self
-        class Lock(object):
-            def __enter__(self):
-                dogpile.readwritelock.acquire_write_lock()
-            def __exit__(self, type, value, traceback):
-                dogpile.readwritelock.release_write_lock()
-        return Lock()
-
-
-    def _enter(self, *arg, **kw):
-        value = super(SyncReaderDogpile, self)._enter(*arg, **kw)
-        self.readwritelock.acquire_read_lock()
-        return value
-
-    def _exit(self):
-        self.readwritelock.release_read_lock()

@@ -3,11 +3,18 @@ import weakref
 
 class NameRegistry(object):
     """Generates and return an object, keeping it as a
-    singleton for a certain identifier for as long as its 
+    singleton for a certain identifier for as long as its
     strongly referenced.
-    
+
+    .. note::
+
+        The :class:`.NameRegistry` exists here to support
+        certain usage patterns by the deprecated
+        :class:`.Dogpile` object.   It is still potentially
+        useful in other cases, however.
+
     e.g.::
-    
+
         class MyFoo(object):
             "some important object."
             def __init__(self, identifier):
@@ -17,20 +24,20 @@ class NameRegistry(object):
 
         # thread 1:
         my_foo = registry.get("foo1")
-        
+
         # thread 2
         my_foo = registry.get("foo1")
-    
+
     Above, ``my_foo`` in both thread #1 and #2 will
     be *the same object*.   The constructor for
-    ``MyFoo`` will be called once, passing the 
+    ``MyFoo`` will be called once, passing the
     identifier ``foo1`` as the argument.
-    
-    When thread 1 and thread 2 both complete or 
+
+    When thread 1 and thread 2 both complete or
     otherwise delete references to ``my_foo``, the
-    object is *removed* from the :class:`.NameRegistry` as 
+    object is *removed* from the :class:`.NameRegistry` as
     a result of Python garbage collection.
-    
+
     :class:`.NameRegistry` is a utility object that
     is used to maintain new :class:`.Dogpile` objects
     against a certain key, for as long as that particular key
@@ -50,8 +57,8 @@ class NameRegistry(object):
 
     def __init__(self, creator):
         """Create a new :class:`.NameRegistry`.
-        
-         
+
+
         """
         self._values = weakref.WeakValueDictionary()
         self._mutex = threading.RLock()
@@ -59,14 +66,14 @@ class NameRegistry(object):
 
     def get(self, identifier, *args, **kw):
         """Get and possibly create the value.
-        
+
         :param identifier: Hash key for the value.
          If the creation function is called, this identifier
          will also be passed to the creation function.
         :param \*args, \**kw: Additional arguments which will
-         also be passed to the creation function if it is 
+         also be passed to the creation function if it is
          called.
-        
+
         """
         try:
             if identifier in self._values:

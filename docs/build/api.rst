@@ -7,19 +7,10 @@ API
 Dogpile
 =======
 
-.. autoclass:: Dogpile
-    :members:
-
-.. autoclass:: SyncReaderDogpile
+.. autoclass:: Lock
     :members:
 
 .. autoclass:: NeedRegenerationException
-    :members:
-
-NameRegistry
-=============
-
-.. autoclass:: NameRegistry
     :members:
 
 Utilities
@@ -27,5 +18,17 @@ Utilities
 
 .. autoclass:: ReadWriteMutex
     :members:
+
+.. autoclass:: NameRegistry
+    :members:
+
+Legacy API
+===========
+
+.. autoclass:: Dogpile
+	:members:
+
+.. autoclass:: SyncReaderDogpile
+	:members:
 
 
