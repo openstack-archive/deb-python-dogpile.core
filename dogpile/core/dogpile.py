@@ -179,9 +179,14 @@ class Dogpile(object):
                     return value_fn(), self.createdtime
 
             def creator_wrapper():
-                return creator(), time.time()
+                value = creator()
+                self.createdtime = time.time()
+                return value, self.createdtime
         else:
-            creator_wrapper = creator
+            def creator_wrapper():
+                value = creator()
+                self.createdtime = time.time()
+                return value
 
         return Lock(
             self.dogpilelock,
