@@ -227,10 +227,10 @@ pass to :class:`.Lock` using the ``key`` argument::
         def decorate(fn):
             # ... gen_cached() from the previous example goes here
 
-            # create an ad-hoc FileLock
-            mutex = lockfile.FileLock(lock_path)
-
             def invoke():
+                # create an ad-hoc FileLock
+                mutex = lockfile.FileLock(lock_path)
+
                 with Lock(mutex, gen_cached, get_value, expiration_time) as value:
                     return value
             return invoke
