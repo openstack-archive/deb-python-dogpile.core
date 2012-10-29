@@ -6,13 +6,6 @@ class NameRegistry(object):
     singleton for a certain identifier for as long as its
     strongly referenced.
 
-    .. note::
-
-        The :class:`.NameRegistry` exists here to support
-        certain usage patterns by the deprecated
-        :class:`.Dogpile` object.   It is still potentially
-        useful in other cases, however.
-
     e.g.::
 
         class MyFoo(object):

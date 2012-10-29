@@ -14,9 +14,6 @@
   who entered the block don't rely upon a memory-only version of creation
   time.  #1
 
-- The NameRegistry class is no longer needed for use with Lock,
-  as there is no shared state.   The class is still handy and will
-  hang around, however.
 
 0.3.3
 =====

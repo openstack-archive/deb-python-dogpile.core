@@ -73,6 +73,8 @@ An example usage is as follows::
       # else return the tuple of (value, creationtime)
       return the_resource[0]
 
+  # a mutex, which needs here to be shared across all invocations
+  # of this particular creation function
   mutex = threading.Lock()
 
   with Lock(mutex, some_creation_function, retrieve_resource, 3600) as value:
@@ -134,31 +136,30 @@ in the next section)::
 
     import pylibmc
     import threading
-    from dogpile.core import Lock, NeedRegenerationException
     import time
+    from dogpile.core import Lock, NeedRegenerationException
 
     mc_pool = pylibmc.ThreadMappedPool(pylibmc.Client("localhost"))
-    mutex = threading.Lock()
 
     def cached(key, expiration_time):
         """A decorator that will cache the return value of a function
         in memcached given a key."""
+
+        mutex = threading.Lock()
 
         def get_value():
              with mc_pool.reserve() as mc:
                 value_plus_time = mc.get(key)
                 if value_plus_time is None:
                     raise NeedRegenerationException()
-                # return a tuple
-                # (value, createdtime)
+                # return a tuple (value, createdtime)
                 return value_plus_time
 
         def decorate(fn):
             def gen_cached():
                 value = fn()
                 with mc_pool.reserve() as mc:
-                    # create a tuple
-                    # (value, createdtime)
+                    # create a tuple (value, createdtime)
                     value_plus_time = (value, time.time())
                     mc.put(key, value_plus_time)
                 return value_plus_time
@@ -184,6 +185,10 @@ In particular, dogpile.core's system allows us to call the memcached get() funct
 once per access, instead of Beaker's system which calls it twice, and doesn't make us call
 get() when we just created the value.
 
+For the mutex object, we keep a ``threading.Lock`` object that's local
+to the decorated function, rather than using a global lock.   This localizes
+the in-process locking to be local to this one decorated function.   In the next section,
+we'll see the usage of a cross-process lock that accomplishes this differently.
 
 Using a File or Distributed Lock with Dogpile
 ==============================================
@@ -232,11 +237,15 @@ pass to :class:`.Lock` using the ``key`` argument::
 
         return decorate
 
-Above, we create the ``mutex`` argument each time using a new ``lockfile.FileLock()``
-object.   For a given key "some_key", we generate a hex digest of it
-first as a quick way to remove any filesystem-unfriendly characters, we then use
-``lockfile.FileLock()`` to create a lock against the file
+For a given key "some_key", we generate a hex digest of the key,
+then use ``lockfile.FileLock()`` to create a lock against the file
 ``/tmp/53def077a4264bd3183d4eb21b1f56f883e1b572.lock``.   Any number of :class:`.Lock`
 objects in various processes will now coordinate with each other, using this common
 filename as the "baton" against which creation of a new value proceeds.
+
+Unlike when we used ``threading.Lock``, the file lock is ultimately locking
+on a file, so multiple instances of ``FileLock()`` will all coordinate on
+that same file - it's often the case that file locks that rely upon ``flock()``
+require non-threaded usage, so a unique filesystem lock per thread is often a good
+idea in any case.
 
