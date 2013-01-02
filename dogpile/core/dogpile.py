@@ -47,7 +47,9 @@ class Lock(object):
      ``None`` for never expires.  This timestamp is compared
      to the creation_time result and ``time.time()`` to determine if
      the value returned by value_and_created_fn is "expired".
-
+    :param threaded_creation: A boolean.  If True, a background thread
+    is spawned to invoke the creator callable.  The responsibility for
+    releasing the mutex is delegated to that new thread.
 
     """
 
