@@ -1,5 +1,6 @@
 import time
 import logging
+import threading
 
 log = logging.getLogger(__name__)
 
@@ -54,12 +55,14 @@ class Lock(object):
             mutex,
             creator,
             value_and_created_fn,
-            expiretime
+            expiretime,
+            threaded_creation=False,
         ):
         self.mutex = mutex
         self.creator = creator
         self.value_and_created_fn = value_and_created_fn
         self.expiretime = expiretime
+        self.threaded_creation = threaded_creation
 
     def _is_expired(self, createdtime):
         """Return true if the expiration time is reached, or no
@@ -129,13 +132,31 @@ class Lock(object):
                 if not self._is_expired(createdtime):
                     log.debug("value already present")
                     return value, createdtime
+                elif self.threaded_creation:
+                    # If configured for threaded creation, give responsibility
+                    # for releasing the mutex to a new thread which will
+                    # invoke the creator callable on its own time.
+                    def worker():
+                        try:
+                            self.creator()
+                        finally:
+                            self.mutex.release()
+                            log.debug("Released creation lock")
+
+                    log.debug("spinning off value creation thread")
+                    thread = threading.Thread(target=worker)
+                    thread.start()
+
+                    # Return the stale value while the worker works.
+                    return value, createdtime
 
             log.debug("Calling creation function")
             created = self.creator()
             return created
         finally:
-            self.mutex.release()
-            log.debug("Released creation lock")
+            if not self.threaded_creation:
+                self.mutex.release()
+                log.debug("Released creation lock")
 
 
     def __enter__(self):
