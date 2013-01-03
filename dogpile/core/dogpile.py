@@ -1,6 +1,5 @@
 import time
 import logging
-import threading
 
 log = logging.getLogger(__name__)
 
@@ -47,9 +46,11 @@ class Lock(object):
      ``None`` for never expires.  This timestamp is compared
      to the creation_time result and ``time.time()`` to determine if
      the value returned by value_and_created_fn is "expired".
-    :param threaded_creation: A boolean.  If True, a background thread
-    is spawned to invoke the creator callable.  The responsibility for
-    releasing the mutex is delegated to that new thread.
+    :param background_runner: A callable.  If specified, this callable will be
+    passed the mutex and creator callable as arguments.  Responsibility for
+    releasing the mutex is delegated to this callable.  The intent is for this
+    to be used to defer invocation of the creator callable until some later
+    time: to run it in the background.
 
     """
 
@@ -58,13 +59,13 @@ class Lock(object):
             creator,
             value_and_created_fn,
             expiretime,
-            threaded_creation=False,
+            background_runner=None,
         ):
         self.mutex = mutex
         self.creator = creator
         self.value_and_created_fn = value_and_created_fn
         self.expiretime = expiretime
-        self.threaded_creation = threaded_creation
+        self.background_runner = background_runner
 
     def _is_expired(self, createdtime):
         """Return true if the expiration time is reached, or no
@@ -113,6 +114,8 @@ class Lock(object):
         if not self._is_expired(createdtime):
             return NOT_REGENERATED
 
+        backgrounded = False
+
         if self._has_value(createdtime):
             if not self.mutex.acquire(False):
                 log.debug("creation function in progress "
@@ -134,29 +137,17 @@ class Lock(object):
                 if not self._is_expired(createdtime):
                     log.debug("value already present")
                     return value, createdtime
-                elif self.threaded_creation:
-                    # If configured for threaded creation, give responsibility
-                    # for releasing the mutex to a new thread which will
-                    # invoke the creator callable on its own time.
-                    def worker():
-                        try:
-                            self.creator()
-                        finally:
-                            self.mutex.release()
-                            log.debug("Released creation lock")
-
-                    log.debug("spinning off value creation thread")
-                    thread = threading.Thread(target=worker)
-                    thread.start()
-
-                    # Return the stale value while the worker works.
+                elif self.background_runner:
+                    log.debug("Passing creation lock to background runner")
+                    self.background_runner(self.mutex, self.creator)
+                    backgrounded = True
                     return value, createdtime
 
             log.debug("Calling creation function")
             created = self.creator()
             return created
         finally:
-            if not self.threaded_creation:
+            if not backgrounded:
                 self.mutex.release()
                 log.debug("Released creation lock")
 
