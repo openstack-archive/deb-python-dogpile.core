@@ -3,11 +3,11 @@ import threading
 import dogpile.core
 
 
-class TestBackgroundRunner(unittest.TestCase):
-    def test_background_release(self):
+class TestAsyncRunner(unittest.TestCase):
+    def test_async_release(self):
         self.called = False
 
-        def runner(mutex, creator):
+        def runner(mutex):
             self.called = True
             mutex.release()
 
