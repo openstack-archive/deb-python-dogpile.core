@@ -46,11 +46,11 @@ class Lock(object):
      ``None`` for never expires.  This timestamp is compared
      to the creation_time result and ``time.time()`` to determine if
      the value returned by value_and_created_fn is "expired".
-    :param background_runner: A callable.  If specified, this callable will be
-    passed the mutex and creator callable as arguments.  Responsibility for
-    releasing the mutex is delegated to this callable.  The intent is for this
-    to be used to defer invocation of the creator callable until some later
-    time: to run it in the background.
+    :param async_creator: A callable.  If specified, this callable will be
+     passed the mutex as an argument and is responsible for releasing the mutex
+     after it finishes some asynchronous value creation.  The intent is for
+     this to be used to defer invocation of the creator callable until some
+     later time.
 
     """
 
@@ -59,13 +59,13 @@ class Lock(object):
             creator,
             value_and_created_fn,
             expiretime,
-            background_runner=None,
+            async_creator=None,
         ):
         self.mutex = mutex
         self.creator = creator
         self.value_and_created_fn = value_and_created_fn
         self.expiretime = expiretime
-        self.background_runner = background_runner
+        self.async_creator = async_creator
 
     def _is_expired(self, createdtime):
         """Return true if the expiration time is reached, or no
@@ -114,7 +114,7 @@ class Lock(object):
         if not self._is_expired(createdtime):
             return NOT_REGENERATED
 
-        backgrounded = False
+        async = False
 
         if self._has_value(createdtime):
             if not self.mutex.acquire(False):
@@ -137,17 +137,17 @@ class Lock(object):
                 if not self._is_expired(createdtime):
                     log.debug("value already present")
                     return value, createdtime
-                elif self.background_runner:
-                    log.debug("Passing creation lock to background runner")
-                    self.background_runner(self.mutex, self.creator)
-                    backgrounded = True
+                elif self.async_creator:
+                    log.debug("Passing creation lock to async runner")
+                    self.async_creator(self.mutex)
+                    async = True
                     return value, createdtime
 
             log.debug("Calling creation function")
             created = self.creator()
             return created
         finally:
-            if not backgrounded:
+            if not async:
                 self.mutex.release()
                 log.debug("Released creation lock")
 
