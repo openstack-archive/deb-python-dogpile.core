@@ -52,6 +52,8 @@ class Lock(object):
      this to be used to defer invocation of the creator callable until some
      later time.
 
+     .. versionadded:: 0.4.1 added the async_creator argument.
+
     """
 
     def __init__(self,

@@ -3,6 +3,17 @@ Changelog
 ==========
 
 .. changelog::
+    :version: 0.4.1
+
+    .. change::
+        :pullreq: 2
+
+      An "async creator" function can be specified to
+      :class:`.Lock` which allows the "creation" function
+      to be called asynchronously or be subsituted for
+      another asynchronous creation scheme.  Courtesy
+      Ralph Bean.
+
     :version: 0.4.0
     :released: Tue Oct 30 2012
 
