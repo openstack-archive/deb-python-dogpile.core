@@ -4,6 +4,7 @@ Changelog
 
 .. changelog::
     :version: 0.4.1
+    :released: Sat Jan 19 2013
 
     .. change::
         :pullreq: 2
