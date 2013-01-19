@@ -7,6 +7,7 @@ Changelog
     :released: Sat Jan 19 2013
 
     .. change::
+        :tags: feature
         :pullreq: 2
 
       An "async creator" function can be specified to
@@ -20,6 +21,7 @@ Changelog
     :released: Tue Oct 30 2012
 
     .. change::
+        :tags: feature
 
       reworked Dogpile's API into a new object called Lock.
       Lock presents just one set of arguments for locking within
@@ -29,7 +31,7 @@ Changelog
       builds its various usage patterns on top of Lock.
 
     .. change::
-        :tags:
+        :tags: bug
         :tickets: 1
 
       Fixed the dependency on storing "creationtime" locally in memory;
