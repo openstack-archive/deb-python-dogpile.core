@@ -34,7 +34,7 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx', 'changelog']
 changelog_sections = ["feature", "bug"]
 
 changelog_render_ticket = "https://bitbucket.org/zzzeek/dogpile.core/issue/%s"
-changelog_render_pullreq = "https://bitbucket.org/zzzeek/dogpile.core/pullrequest/%s"
+changelog_render_pullreq = "https://bitbucket.org/zzzeek/dogpile.core/pull-request/%s"
 changelog_render_changeset = "https://bitbucket.org/zzzeek/dogpile.core/changeset/%s"
 
 # Add any paths that contain templates here, relative to this directory.
