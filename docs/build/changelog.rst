@@ -14,6 +14,7 @@ Changelog
       another asynchronous creation scheme.  Courtesy
       Ralph Bean.
 
+.. changelog::
     :version: 0.4.0
     :released: Tue Oct 30 2012
 
