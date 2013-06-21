@@ -3,6 +3,13 @@ Changelog
 ==========
 
 .. changelog::
+    :version: 0.4.2
+
+    .. change::
+        :tags: misc
+
+      Source repository has been moved to git.
+
     :version: 0.4.1
     :released: Sat Jan 19 2013
 
