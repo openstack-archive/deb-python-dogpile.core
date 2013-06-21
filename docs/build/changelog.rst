@@ -10,6 +10,7 @@ Changelog
 
       Source repository has been moved to git.
 
+.. changelog::
     :version: 0.4.1
     :released: Sat Jan 19 2013
 
