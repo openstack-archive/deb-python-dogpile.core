@@ -1,0 +1,8 @@
+recursive-include docs *.html *.css *.txt *.js *.jpg *.png *.py Makefile *.rst *.sty
+recursive-include tests *.py *.dat
+
+include README* LICENSE distribute_setup.py CHANGES* test.cfg nose_logging_config.ini
+
+prune docs/build/output
+
+
