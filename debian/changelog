@@ -1,5 +1,5 @@
 python-dogpile.core (0.4.1-1) unstable; urgency=low
 
-  * Initial release. (Closes: #XXXXXX)
+  * Initial release. (Closes: #722124)
 
  -- Thomas Goirand <zigo@debian.org>  Sun, 08 Sep 2013 14:21:28 +0800
