@@ -1,4 +1,4 @@
-python-dogpile.core (0.4.1-1) unstable; urgency=low
+python-dogpile.core (0.4.1+dfsg1-1) unstable; urgency=low
 
   * Initial release. (Closes: #722124)
 
