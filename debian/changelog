@@ -1,3 +1,9 @@
+python-dogpile.core (0.4.1+dfsg1-2) unstable; urgency=medium
+
+  * Added Python 3 support (Closes: #751662).
+
+ -- Thomas Goirand <zigo@debian.org>  Mon, 16 Jun 2014 00:18:01 +0800
+
 python-dogpile.core (0.4.1+dfsg1-1) unstable; urgency=low
 
   * Initial release. (Closes: #722124)
