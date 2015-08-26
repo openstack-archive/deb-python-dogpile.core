@@ -3,6 +3,7 @@ python-dogpile.core (0.4.1+dfsg1-3) unstable; urgency=medium
   * Disable unit tests, as it's failing in an non-deterministic way. Thanks to
     Chris Lamb <lamby@debian.org> for the report (Closes: #795974).
   * Fixed watch file to use the Debian redirector instead of PyPi.
+  * Standards-Version is now 3.9.6.
 
  -- Thomas Goirand <zigo@debian.org>  Wed, 26 Aug 2015 14:10:22 +0000
 
