@@ -18,8 +18,8 @@ override_dh_auto_install:
 			--root $(CURDIR)/debian/python3-dogpile.core; \
 	done
 
-ifeq (,$(findstring nocheck, $(DEB_BUILD_OPTIONS)))
+#ifeq (,$(findstring nocheck, $(DEB_BUILD_OPTIONS)))
 override_dh_auto_test:
-	nosetests
-	nosetests3
-endif
+#	nosetests
+#	nosetests3
+#endif

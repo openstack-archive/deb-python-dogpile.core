@@ -1,3 +1,10 @@
+python-dogpile.core (0.4.1+dfsg1-3) unstable; urgency=medium
+
+  * Disable unit tests, as it's failing in an non-deterministic way. Thanks to
+    Chris Lamb <lamby@debian.org> for the report (Closes: #795974).
+
+ -- Thomas Goirand <zigo@debian.org>  Wed, 26 Aug 2015 14:10:22 +0000
+
 python-dogpile.core (0.4.1+dfsg1-2) unstable; urgency=medium
 
   * Added Python 3 support (Closes: #751662).
