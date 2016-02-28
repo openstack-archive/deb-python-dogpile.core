@@ -14,8 +14,8 @@ Build-Depends: debhelper (>= 9),
                python3-nose,
                python3-setuptools
 Standards-Version: 3.9.6
-Vcs-Browser: http://anonscm.debian.org/gitweb/?p=openstack/python-dogpile.core.git
-Vcs-Git: git://anonscm.debian.org/openstack/python-dogpile.core.git
+Vcs-Browser: https://anonscm.debian.org/cgit/openstack/python-dogpile.core.git/
+Vcs-Git: https://anonscm.debian.org/git/openstack/python-dogpile.core.git
 Homepage: https://bitbucket.org/zzzeek/dogpile.core
 
 Package: python-dogpile.core
