@@ -1,3 +1,9 @@
+python-dogpile.core (0.4.1+dfsg1-4) UNRELEASED; urgency=medium
+
+  * Fixed homepage (https).
+
+ -- Ondřej Nový <novy@ondrej.org>  Sun, 28 Feb 2016 15:37:00 +0100
+
 python-dogpile.core (0.4.1+dfsg1-3) unstable; urgency=medium
 
   * Disable unit tests, as it's failing in an non-deterministic way. Thanks to
