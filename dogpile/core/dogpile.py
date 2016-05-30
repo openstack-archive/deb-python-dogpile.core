@@ -127,6 +127,7 @@ class Lock(object):
             log.debug("no value, waiting for create lock")
             self.mutex.acquire()
 
+        value = NO_VALUE = object()
         try:
             log.debug("value creation lock %r acquired" % self.mutex)
 
@@ -150,7 +151,14 @@ class Lock(object):
             return created
         finally:
             if not async:
-                self.mutex.release()
+                try:
+                    self.mutex.release()
+                except:
+                    if self.only_warn_on_release_failure \
+                            and value is not NO_VALUE:
+                        raise LockReleaseFailure(value)
+                    else:
+                        raise
                 log.debug("Released creation lock")
 
 

@@ -2,6 +2,12 @@
 Welcome to dogpile.core's documentation!
 ========================================
 
+.. note::
+
+    The dogpile.core package has been rolled into dogpile.cache directly as
+    of version 0.6.0 of dogpile.cache.  dogpile.core as a separate package is
+    effectively EOL.
+
 `dogpile.core <http://bitbucket.org/zzzeek/dogpile>`_ provides the *dogpile* lock,
 one which allows a single thread or process to generate
 an expensive resource while other threads/processes use the "old" value, until the

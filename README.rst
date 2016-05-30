@@ -1,6 +1,11 @@
 dogpile.core
 ============
 
+.. note::
+
+    The dogpile.core package has been rolled into dogpile.cache directly.
+    dogpile.core as a separate package is effectively EOL.
+
 A "dogpile" lock, one which allows a single thread to generate
 an expensive resource while other threads use the "old" value, until the
 "new" value is ready.
@@ -15,7 +20,7 @@ A simple example::
 
     from dogpile.core import Dogpile
 
-    # store a reference to a "resource", some 
+    # store a reference to a "resource", some
     # object that is expensive to create.
     the_resource = [None]
 
@@ -38,13 +43,13 @@ A simple example::
         use_the_resource()
 
 Above, ``some_creation_function()`` will be called
-when ``Dogpile.acquire()`` is first called.  The 
-remainder of the ``with`` block then proceeds.   Concurrent threads which 
+when ``Dogpile.acquire()`` is first called.  The
+remainder of the ``with`` block then proceeds.   Concurrent threads which
 call ``Dogpile.acquire()`` during this initial period
 will be blocked until ``some_creation_function()`` completes.
 
 Once the creation function has completed successfully the first time,
-new calls to ``Dogpile.acquire()`` will call ``some_creation_function()`` 
+new calls to ``Dogpile.acquire()`` will call ``some_creation_function()``
 each time the "expiretime" has been reached, allowing only a single
 thread to call the function.  Concurrent threads
 which call ``Dogpile.acquire()`` during this period will
@@ -60,8 +65,8 @@ Development Status
 
 dogpile.core has been in use in a small number of production environments for a period of
 months, and as of 0.3.2 has entered beta status.  No issues have been reported yet with its
-core synchronization model, and overall the project hasn't seen many changes. 
-Most development continues within dogpile.cache.   
+core synchronization model, and overall the project hasn't seen many changes.
+Most development continues within dogpile.cache.
 
 
 
