@@ -1,9 +1,13 @@
 python-dogpile.core (0.4.1+dfsg1-4) UNRELEASED; urgency=medium
 
+  [ Ondřej Nový ]
   * Fixed homepage (https).
   * Fixed VCS URLs (https).
 
- -- Ondřej Nový <novy@ondrej.org>  Sun, 28 Feb 2016 15:37:00 +0100
+  [ Thomas Goirand ]
+  * Fixed upstream VCS.
+
+ -- Thomas Goirand <zigo@debian.org>  Thu, 11 Aug 2016 13:56:52 +0200
 
 python-dogpile.core (0.4.1+dfsg1-3) unstable; urgency=medium
 
