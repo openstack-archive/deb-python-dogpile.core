@@ -7,6 +7,10 @@ python-dogpile.core (0.4.1+dfsg1-4) UNRELEASED; urgency=medium
   [ Thomas Goirand ]
   * Fixed upstream VCS.
 
+  [ Ondřej Nový ]
+  * d/s/options: extend-diff-ignore of .gitreview
+  * d/control: Using OpenStack's Gerrit as VCS URLs.
+
  -- Thomas Goirand <zigo@debian.org>  Thu, 11 Aug 2016 13:56:52 +0200
 
 python-dogpile.core (0.4.1+dfsg1-3) unstable; urgency=medium
